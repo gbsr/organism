@@ -6,17 +6,31 @@ canvas.height = window.innerHeight / 2;
 console.log(ctx);
 
 ctx.fillStyle = '#c7444a';
+ctx.strokeStyle = '#1e1e1e';
+ctx.lineWidth = 4;
 
-const radius = 5;
-const numberOfParticles = 30;
+const radius = 10;
+const numberOfParticles = 300;
 
 class Particle {
 	constructor(effect) {
 		this.effect = effect;
-		this.x = Math.random() * this.effect.width;
-		this.y = Math.random() * this.effect.height;
 		this.radius = radius;
+
+
+		/**
+		 * Initializes the x and y coordinates of the particle instance
+		 * by generating a random value within the bounds of the effect area,
+		 * offset by the particle's radius. This evenly distributes the particles
+		 * within the effect area.
+		 */
+		this.x = this.radius + Math.random() * (this.effect.width - this.radius * 2);
+		this.y = this.radius + Math.random() * (this.effect.height - this.radius * 2);
+		// this.x = Math.random() * this.effect.width;
+		// this.y = Math.random() * this.effect.height;
 	}
+
+
 	/**
 	 * Draws the particle on the canvas by creating a path and arc
 	 * representing the particle's position and radius.
@@ -26,6 +40,7 @@ class Particle {
 		context.beginPath();
 		context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
 		context.fill();
+		context.stroke();
 	}
 }
 class Effect {
@@ -52,12 +67,14 @@ class Effect {
 		});
 	}
 }
+
 const effect = new Effect(canvas);
 console.log(effect);
 effect.handleParticles(ctx);
 
 
 function animate() {
+
 
 }
 
