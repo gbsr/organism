@@ -26,8 +26,6 @@ class Particle {
 		 */
 		this.x = this.radius + Math.random() * (this.effect.width - this.radius * 2);
 		this.y = this.radius + Math.random() * (this.effect.height - this.radius * 2);
-		// this.x = Math.random() * this.effect.width;
-		// this.y = Math.random() * this.effect.height;
 	}
 
 
@@ -41,6 +39,11 @@ class Particle {
 		context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
 		context.fill();
 		context.stroke();
+	}
+
+	update() {
+		this.x += Math.random() * 2 - 1;
+		this.y += Math.random() * 2 - 1;
 	}
 }
 class Effect {
@@ -64,8 +67,10 @@ class Effect {
 	handleParticles(context) {
 		this.particles.forEach(particle => {
 			particle.draw(context);
+			particle.update();
 		});
 	}
+
 }
 
 const effect = new Effect(canvas);
@@ -75,7 +80,11 @@ effect.handleParticles(ctx);
 
 function animate() {
 
-
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	effect.handleParticles(ctx);
+	requestAnimationFrame(animate);
 }
+
+animate();
 
 
