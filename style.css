@@ -1,3 +1,7 @@
+:root {
+	--slider-col: #514d4d;
+}
+
 body {
 	padding: 0;
 	background-color: #111111;
@@ -6,8 +10,27 @@ body {
 	width: 100vw;
 	height: 100vh;
 	display: flex;
+	gap: 4rem;
 	justify-content: center;
 	align-items: center;
+}
+
+/* styling the slider for both webkit and mozilla */
+
+/* Track: webkit browsers */
+input[type="range"]::-webkit-slider-runnable-track {
+	height: 15px;
+	width: 100%;
+	background: var(--slider-col);
+	border-radius: 16px;
+}
+
+/* Track: Mozilla Firefox */
+input[type="range"]::-moz-range-track {
+	height: 15px;
+	width: 100%;
+	background: var(--slider-col);
+	border-radius: 16px;
 }
 
 .card {
@@ -27,6 +50,28 @@ body {
 	height: 100%;
 }
 
+button {
+	border-radius: 10px;
+	background: #2d2c2c;
+	color: #cecece;
+	font-size: 1.25rem;
+	padding-inline: 1rem;
+}
+
 label {
 	padding: 1rem;
+	font-size: 2rem;
+}
+
+.controls {
+	display: flex;
+	flex-direction: column;
+	padding: 1rem;
+}
+
+.control {
+	display: flex;
+	gap: 1rem;
+	flex-direction: row;
+	justify-content: space-between;
 }

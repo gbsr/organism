@@ -11,21 +11,15 @@ console.log(ctx);
 ctx.strokeStyle = 'white';
 ctx.lineWidth = 3;
 
-// const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-// gradient.addColorStop(0, 'white');
-// gradient.addColorStop(0.05, 'lightblue');
-// gradient.addColorStop(0.5, 'blue');
-// gradient.addColorStop(0.85, 'darkblue');
-// gradient.addColorStop(1, 'black');
-// ctx.fillStyle = gradient;
-
-const numberOfParticles = minMax(40, 40);
-let particleRepelRadius = 10;
-
+let numberOfParticles = minMax(80, 750);
+let currentNumberOfParticles = 0;
+let unrest = 0;
+let particleRepelRadius = unrest;
+let particleSizes = minMax(1, 20);
 class Particle {
 	constructor(effect) {
 		this.effect = effect;
-		this.size = minMax(4, 15);
+		this.size = particleSizes;
 
 
 		/**
@@ -35,8 +29,8 @@ class Particle {
 		this.x = this.size + Math.random() * (this.effect.width - this.size * 2);
 		this.y = this.size + Math.random() * (this.effect.height - this.size * 2);
 
-		this.vx = minMax(0, 0);
-		this.vy = minMax(0, 0);
+		this.velocityX = minMax(-1, unrest);
+		this.velocityY = minMax(-1, unrest);
 
 	}
 
@@ -56,10 +50,22 @@ class Particle {
 
 	update() {
 
-		const mouseRadius = minMax(100, 180);
-		const mouseRepelForce = 8;
+		const mouseRadius = minMax(20, 40);
+		const mouseRepelForce = 3;
 
+		while (currentNumberOfParticles < numberOfParticles) {
+			currentNumberOfParticles++;
+			let newParticle = new Particle(this.effect);
+			newParticle.x = Math.random() * this.effect.width;
+			newParticle.y = Math.random() * this.effect.height;
+			this.effect.particles.size = particleSizes;
+			this.effect.particles.push(newParticle);
+		}
 
+		while (numberOfParticles < currentNumberOfParticles) {
+			currentNumberOfParticles--;
+			this.effect.particles.pop();
+		}
 
 		// let particleRepelRadius = repelForceValue.value;
 
@@ -95,42 +101,30 @@ class Particle {
 				this.y += Math.sin(angle);
 			}
 
-			// Cohesion: attract when too far
-			let cohesionRadius = this.size + other.size * 16;
-			if (distance > cohesionRadius) {
-				const angle = Math.atan2(dy, dx);
-				this.x -= Math.cos(angle);
-				this.y -= Math.sin(angle);
-			}
 
-			// Alignment: match velocity of nearby particles
-			let alignmentRadius = this.size + other.size * 2;
-			if (distance < alignmentRadius) {
-				this.vx += (other.vx - this.vx) * 2;
-				this.vy += (other.vy - this.vy) * 2;
-			}
+
 		}
 
 		// Move towards mouse
 		if (this.effect.mouse.x > 0 && this.effect.mouse.x < this.effect.width) {
 
-			const offsetX = minMax(0, 0);
-			const offsetY = minMax(0, 0);
+			const offsetX = minMax(-0.2, 0.2);
+			const offsetY = minMax(-0.3, 0.24);
 			const speed = minMax(0.02, 0.025);
 			this.x = lerp(this.x, this.effect.mouse.x + offsetX, speed);
 			this.y = lerp(this.y, this.effect.mouse.y + offsetY, speed);
 		}
 
-		this.x += this.vx;
-		this.y += this.vy;
+		this.x += this.velocityX;
+		this.y += this.velocityY;
 
 		// Bounce off edges
 		if (this.x > this.effect.width - this.size || this.x < this.size) {
-			this.vx *= -1;
+			this.velocityX *= -1;
 		}
 
 		if (this.y > this.effect.height - this.size || this.y < this.size) {
-			this.vy *= -1;
+			this.velocityY *= -1;
 		}
 		this.x = Math.max(Math.min(this.x, this.effect.width - this.size), this.size);
 		this.y = Math.max(Math.min(this.y, this.effect.height - this.size), this.size);
@@ -141,12 +135,39 @@ class Particle {
 
 }
 const repelForceSlider = document.getElementById('repelForce');
-const repelForceValue = document.getElementById('repelForceValue');
+const randomizeButton = document.getElementById('randomize');
+const particleAmountSlider = document.getElementById('particleAmount');
 
+particleAmountSlider.value = numberOfParticles;
+particleAmountSlider.addEventListener('input', function () {
+	numberOfParticles = this.value;
+	console.log('' + numberOfParticles);
+});
+repelForceSlider.value = particleRepelRadius;
 repelForceSlider.addEventListener('input', function () {
 	particleRepelRadius = this.value;
-	repelForceValue.textContent = this.value;
 });
+const unrestSlider = document.getElementById('unrest');
+
+unrestSlider.value = unrest;
+unrestSlider.addEventListener('input', function () {
+	unrest = this.value;
+
+	// console.log('unrest:' + unrest);
+});
+
+randomizeButton.addEventListener('click', function () {
+	for (let particle of effect.particles) {
+		console.log('' + particle.size);
+		randomizeParticles(particle);
+	}
+});
+
+function randomizeParticles(particle) {
+	let particleSizes = minMax(1, 20);
+	particle.size = particleSizes;
+}
+
 
 class Effect {
 
@@ -176,17 +197,24 @@ class Effect {
 			this.mouse.y = undefined;
 		}
 		);
+
 	}
 
 	createParticles() {
 		for (let i = 0; i < this.numberOfParticles; i++) {
-			this.particles.push(new Particle(this));
+			let newParticle = new Particle(this);
+			this.particles.push(newParticle);
+			currentNumberOfParticles++;
+			randomizeParticles(newParticle);
 		}
 	}
 
 	handleParticles(context) {
 		this.connectParticles(context);
 		this.particles.forEach(particle => {
+			particle.velocityX = minMax(-0.1, 0.1) * unrest;
+			particle.velocityY = minMax(-0.1, 0.1) * unrest;
+			// console.log('new particle speed:' + particle.velocityX + '' + particle.velocityY);
 			particle.draw(context);
 			particle.update();
 		});
@@ -245,7 +273,7 @@ function animate() {
 
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	// ctx.fillRect(0, 0, canvas.width, canvas.height);
-	ctx.fillStyle = 'rgba(5, 5, 7, 0.99)';
+	ctx.fillStyle = 'rgba(5, 5, 7, 0.39)';
 	effect.handleParticles(ctx);
 	// lerp from old maxDistance to new distance
 	maxDistance += (targetDistance - maxDistance) * 0.01;
