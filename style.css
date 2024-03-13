@@ -58,6 +58,21 @@ button {
 	padding-inline: 1rem;
 }
 
+input[type="checkbox"] {
+	display: flex;
+	color: #3e3e3e;
+	box-shadow: 0px 0px 22px rgba(255, 255, 255, 0.312);
+	height: 30px;
+	width: 30px;
+}
+.checkbox {
+	display: flex;
+	align-items: center;
+	gap: 3rem;
+	justify-content: center;
+	flex-direction: row;
+	width: 220px;
+}
 label {
 	padding: 1rem;
 	font-size: 2rem;
