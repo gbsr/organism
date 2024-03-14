@@ -24,7 +24,11 @@ let particleSizeRange = [1, 4];
 let particleColor = 'white';
 let targetDistance = maxDistance;
 
-const effect = new Effect(canvas, numberOfParticles, particleSizeRange, particleColor, particleRepelRadius);
+const mouseRadiusRange = [10, 80];
+const mouseRepelRange = [0.1, 2];
+
+
+const effect = new Effect(canvas, numberOfParticles, particleSizeRange, particleColor, particleRepelRadius, mouseRadiusRange, mouseRepelRange);
 export function randomizeParticles(particle) {
 	particle.size = minMax(particleSizeRange[0], particleSizeRange[1]);
 	particle.color = particleColor;

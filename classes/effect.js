@@ -5,8 +5,15 @@ import Particle from './particle.js';
 let currentNumberOfParticles = 0;
 export class Effect {
 
-
-	constructor(canvas, numberOfParticles, particleSize, particleColor, particleRepelRadius) {
+	constructor(
+		canvas,
+		numberOfParticles,
+		particleSize,
+		particleColor,
+		particleRepelRadius,
+		mouseRadiusRange,
+		mouseRepelRange
+	) {
 		this.canvas = canvas;
 		this.width = this.canvas.width;
 		this.height = this.canvas.height;
@@ -15,6 +22,8 @@ export class Effect {
 		this.size = particleSize;
 		this.particleColor = particleColor;
 		this.particleRepelRadius = particleRepelRadius;
+		this.mouseRadius = minMax(mouseRadiusRange[0], mouseRadiusRange[1]);
+		this.mouseRepelForce = minMax(mouseRepelRange[0], mouseRepelRange[1]);
 		this.createParticles();
 		console.log('This is how I was constructed: ' + this.numberOfParticles + ' : ' + this.size + ' : ' + this.particleColor + ' : ' + this.particleRepelRadius);
 
@@ -39,7 +48,13 @@ export class Effect {
 
 	createParticles() {
 		for (let i = 0; i < this.numberOfParticles; i++) {
-			let newParticle = new Particle(this, this.particleRepelRadius, this.size, this.particleColor);
+			let newParticle = new Particle(
+				this,
+				this.particleRepelRadius,
+				this.size,
+				this.particleColor,
+				this.mouseRadius,
+				this.mouseRepelForce);
 			this.particles.push(newParticle);
 			currentNumberOfParticles = this.numberOfParticles;
 			currentNumberOfParticles++;

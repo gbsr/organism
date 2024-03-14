@@ -1,10 +1,13 @@
 import { minMax, lerp } from '../helpers.js';
+import RepelMouse from '../components/repelMouse.js';
 class Particle {
-	constructor(effect, particleRepelRadius, particleSizeRange, particleColor) {
+	constructor(effect, particleRepelRadius, particleSizeRange, particleColor, mouseRadius, mouseRepelForce) {
 		this.effect = effect;
 		this.size = minMax(particleSizeRange[0], particleSizeRange[1]);
 		this.color = particleColor;
 		this.particleRepelRadius = particleRepelRadius;
+		this.mouseRadius = mouseRadius;
+		this.mouseRepelForce = mouseRepelForce;
 
 
 		/**
@@ -37,29 +40,16 @@ class Particle {
 
 	update() {
 
-		const mouseRadius = minMax(100, 180);
-		const mouseRepelForce = 8;
 
 
 
 		// let particleRepelRadius = repelForceValue.value;
-
-		// Repel from mouse
-		if (this.effect.mouse.x > 0 && this.effect.mouse.x < this.effect.width &&
-			this.effect.mouse.y > 0 && this.effect.mouse.y < this.effect.height) {
-			const dx = this.x - this.effect.mouse.x;
-			const dy = this.y - this.effect.mouse.y;
-			const distance = Math.hypot(dx, dy);
-
-			if (distance < mouseRadius) {
-				const angle = Math.atan2(dy, dx);
-				const repelX = mouseRepelForce * Math.cos(angle);
-				const repelY = mouseRepelForce * Math.sin(angle);
-				this.x += repelX;
-				this.y += repelY;
-			}
+		let repel = true;
+		if (repel) {
+			let newPosition = RepelMouse(this.effect, this.x, this.y, this.mouseRadius, this.mouseRepelForce);
+			this.x = newPosition.x;
+			this.y = newPosition.y;
 		}
-
 		// Boids-like behavior
 		for (let other of this.effect.particles) {
 			if (other === this) continue; // Don't interact with self
@@ -92,15 +82,15 @@ class Particle {
 			}
 		}
 
-		// Move towards mouse
-		if (this.effect.mouse.x > 0 && this.effect.mouse.x < this.effect.width) {
+		// // Move towards mouse
+		// if (this.effect.mouse.x > 0 && this.effect.mouse.x < this.effect.width) {
 
-			const offsetX = minMax(0, 0);
-			const offsetY = minMax(0, 0);
-			const speed = minMax(0.02, 0.025);
-			this.x = lerp(this.x, this.effect.mouse.x + offsetX, speed);
-			this.y = lerp(this.y, this.effect.mouse.y + offsetY, speed);
-		}
+		// 	const offsetX = minMax(0, 0);
+		// 	const offsetY = minMax(0, 0);
+		// 	const speed = minMax(0.02, 0.025);
+		// 	this.x = lerp(this.x, this.effect.mouse.x + offsetX, speed);
+		// 	this.y = lerp(this.y, this.effect.mouse.y + offsetY, speed);
+		// }
 
 		this.x += this.vx;
 		this.y += this.vy;
