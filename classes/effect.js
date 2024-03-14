@@ -8,24 +8,27 @@ export class Effect {
 	constructor(
 		canvas,
 		numberOfParticles,
-		particleSize,
+		particleSizeRange,
 		particleColor,
 		particleRepelRadius,
 		mouseRadiusRange,
-		mouseRepelRange
+		mouseRepelRange,
+		isRepellingMouse,
+		isAttractedToMouse,
 	) {
 		this.canvas = canvas;
 		this.width = this.canvas.width;
 		this.height = this.canvas.height;
 		this.particles = [];
 		this.numberOfParticles = numberOfParticles;
-		this.size = particleSize;
 		this.particleColor = particleColor;
 		this.particleRepelRadius = particleRepelRadius;
+		this.repel = isRepellingMouse;
+		this.size = minMax(particleSizeRange[0], particleSizeRange[1]);
 		this.mouseRadius = minMax(mouseRadiusRange[0], mouseRadiusRange[1]);
 		this.mouseRepelForce = minMax(mouseRepelRange[0], mouseRepelRange[1]);
+		this.attract = isAttractedToMouse;
 		this.createParticles();
-		console.log('This is how I was constructed: ' + this.numberOfParticles + ' : ' + this.size + ' : ' + this.particleColor + ' : ' + this.particleRepelRadius);
 
 		this.mouse = {
 			x: 0,
@@ -54,7 +57,9 @@ export class Effect {
 				this.size,
 				this.particleColor,
 				this.mouseRadius,
-				this.mouseRepelForce);
+				this.mouseRepelForce,
+				this.repel,
+				this.attract);
 			this.particles.push(newParticle);
 			currentNumberOfParticles = this.numberOfParticles;
 			currentNumberOfParticles++;

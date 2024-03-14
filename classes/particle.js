@@ -1,13 +1,25 @@
 import { minMax, lerp } from '../helpers.js';
 import RepelMouse from '../components/repelMouse.js';
 class Particle {
-	constructor(effect, particleRepelRadius, particleSizeRange, particleColor, mouseRadius, mouseRepelForce) {
+	constructor(
+		effect,
+		particleRepelRadius,
+		particleSize,
+		particleColor,
+		mouseRadius,
+		mouseRepel,
+		isRepellingMouse,
+		isAttractedToMouse,
+	) {
 		this.effect = effect;
-		this.size = minMax(particleSizeRange[0], particleSizeRange[1]);
+		this.size = particleSize;
 		this.color = particleColor;
 		this.particleRepelRadius = particleRepelRadius;
 		this.mouseRadius = mouseRadius;
-		this.mouseRepelForce = mouseRepelForce;
+		this.mouseRepelForce = mouseRepel;
+		this.repel = isRepellingMouse;
+		this.attract = isAttractedToMouse;
+
 
 
 		/**
@@ -44,8 +56,7 @@ class Particle {
 
 
 		// let particleRepelRadius = repelForceValue.value;
-		let repel = true;
-		if (repel) {
+		if (this.repel) {
 			let newPosition = RepelMouse(this.effect, this.x, this.y, this.mouseRadius, this.mouseRepelForce);
 			this.x = newPosition.x;
 			this.y = newPosition.y;

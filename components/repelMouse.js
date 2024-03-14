@@ -13,7 +13,6 @@ function RepelMouse(effect, x, y, mouseRadius, mouseRepelForce) {
 			const repelY = mouseRepelForce * Math.sin(angle);
 			x += repelX;
 			y += repelY;
-			console.log('repel force: ' + repelX + ' ' + repelY);
 		}
 	}
 	return { x, y };
