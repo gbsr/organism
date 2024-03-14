@@ -1,20 +1,22 @@
 import { minMax, lerp } from '../helpers.js';
 class Particle {
-	constructor(effect, particleRepelRadius) {
+	constructor(effect, particleRepelRadius, particleSizeRange, particleColor) {
 		this.effect = effect;
-		this.size = minMax(4, 15);
+		this.size = minMax(particleSizeRange[0], particleSizeRange[1]);
+		this.color = particleColor;
 		this.particleRepelRadius = particleRepelRadius;
 
 
 		/**
 		 * Generate random x and y coordinates within the bounds of the effect, offset
 		 * by the particle size. This positions particles randomly within the effect area.
-		 */
+		*/
 		this.x = this.size + Math.random() * (this.effect.width - this.size * 2);
 		this.y = this.size + Math.random() * (this.effect.height - this.size * 2);
 
 		this.vx = minMax(0, 0);
 		this.vy = minMax(0, 0);
+		console.log('Heres my props - ' + this.size + ' : ' + this.color + ' : ' + this.particleRepelRadius);
 
 	}
 
@@ -28,6 +30,7 @@ class Particle {
 		context.beginPath();
 		context.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
 		context.fill();
+		context.fillStyle = this.color;
 	}
 
 
@@ -66,7 +69,7 @@ class Particle {
 			const distance = Math.hypot(dx, dy);
 
 			// Separation: repel when too close
-			let separationRadius = this.size + other.size * particleRepelRadius;
+			let separationRadius = this.size + other.size * this.particleRepelRadius;
 			if (distance < separationRadius) {
 				const angle = Math.atan2(dy, dx);
 				this.x += Math.cos(angle);
