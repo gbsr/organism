@@ -19,7 +19,7 @@ console.log(ctx);
 export let maxDistance = minMax(20, 50);
 let numberOfParticles = minMax(100, 200);
 
-let particleRepelRadius = [1, 2];
+let particleRepelRadius = [2, 2];
 let particleSizeRange = [2, 8];
 let particleColor = 'pink';
 let targetDistance = maxDistance;

@@ -28,12 +28,15 @@ class Particle {
 		this.y = this.size + Math.random() * (this.effect.height - this.size * 2);
 
 		// Define the minimum and maximum velocity
-		const minVelocity = 0.0002; // Adjust this value as needed
-		const maxVelocity = 0.0005; // Adjust this value as needed
+		const minVelocity = 0.2; // Adjust this value as needed
+		const maxVelocity = 0.2; // Adjust this value as needed
 
 		// Initialize the velocities
 		this.vx = Math.random() * (maxVelocity - minVelocity) + minVelocity;
 		this.vy = Math.random() * (maxVelocity - minVelocity) + minVelocity;
+
+		this.maxVelocity = maxVelocity;
+		this.maxAcceleration = 0.1;
 
 		// Randomly invert the velocities to allow for movement in all directions
 		if (Math.random() < 0.5) this.vx *= -1;
@@ -55,32 +58,84 @@ class Particle {
 
 	update() {
 
+
+		// Calculate the new velocity
+		let newVelocity = this.separate(this.effect.particles);
+
+		// Update the velocity
+		this.vx = newVelocity.x;
+		this.vy = newVelocity.y;
+
+		// Update the position
 		this.x += this.vx;
 		this.y += this.vy;
+		// Handle edge detection
+		this.HandleEdgeDetection();
+
 
 		// To make sure we bounce off the edge, and also stay within the canvas at all times
 		this.HandleEdgeDetection();
 
-		// boids implementation
-
-		// cohesion
-		for (let i = 0; i < this.effect.particles.length; i++) {
-			let other = this.effect.particles[i];
-			let distance = Math.hypot(this.x - other.x, this.y - other.y);
-			if (distance < 100 && other !== this) {
-
-				let dx = this.x - other.x;
-				let dy = this.y - other.y;
-				let angle = Math.atan2(dy, dx);
-				this.vx -= Math.cos(angle) * 0.0005;
-				this.vy -= Math.sin(angle) * 0.0005;
-			}
-		}
-		// alignment
-		// separation
 
 	}
 
+	separate(particles) {
+		let perceptionRadius = 30; //Radius of perception
+		let avoidance = { x: 0, y: 0 }; //Average Velocity
+
+		// Loops through every particle to check if they fall
+		// inside the perception Radius
+		particles.forEach(particle => {
+			// Distance between particle and actual particle
+			let dx = this.x - particle.x;
+			let dy = this.y - particle.y;
+			let d = Math.hypot(dx, dy);
+
+			// If particle is inside perception radius
+			if (d < perceptionRadius && particle !== this) {
+				// Calculates the average avoidance vector
+				// which is inverse to the distance vector
+				// between two particles
+				let diff = { x: dx, y: dy };
+				diff.x /= d * d; // Weight by distance squared
+				diff.y /= d * d; // Weight by distance squared
+
+				// Adds to the avoidance force vector
+				// the proportional inverse vector
+				avoidance.x += diff.x;
+				avoidance.y += diff.y;
+			}
+		});
+
+		// console.log('avoidance before normalization:', avoidance);
+
+		// Normalize the avoidance vector and scale to maximum speed
+		let magnitude = Math.hypot(avoidance.x, avoidance.y);
+		if (magnitude !== 0) {
+			avoidance.x /= magnitude;
+			avoidance.y /= magnitude;
+
+			avoidance.x *= this.maxVelocity;
+			avoidance.y *= this.maxVelocity;
+		}
+
+		// console.log('this.vx:', this.vx);
+		// console.log('this.vy:', this.vy);
+		// Subtract current velocity to get steering force
+		avoidance.x -= this.vx;
+		avoidance.y -= this.vy;
+
+		// Limit force to maximum steering force
+		magnitude = Math.hypot(avoidance.x, avoidance.y);
+		if (magnitude > this.maxAcceleration) {
+			avoidance.x = (avoidance.x / magnitude) * this.maxAcceleration;
+			avoidance.y = (avoidance.y / magnitude) * this.maxAcceleration;
+		}
+
+		// console.log('avoidance after limiting:', avoidance);
+
+		return avoidance;
+	}
 
 	HandleEdgeDetection() {
 		const buffer = 20;
