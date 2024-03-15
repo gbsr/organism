@@ -1,5 +1,15 @@
 // Description: This file contains versatile helper functions
+let lastTime = Date.now();
 
+export function GetDeltaTime() {
+	let currentTime = Date.now();
+	let deltaTime = (currentTime - lastTime) / 1000; // Convert to seconds
+	lastTime = currentTime;
+	if (deltaTime < 0.016) { // If deltaTime is less than 16 ms (equivalent to 60 FPS)
+		deltaTime = 0.016; // Set it to 16 ms
+	}
+	return deltaTime;
+}
 export function minMax(min, max) {
 	return Math.floor(Math.random() * (max - min + 1) + min);
 }

@@ -1,5 +1,12 @@
-import { minMax, lerp } from '../helpers.js';
+import { minMax, lerp, GetDeltaTime } from '../helpers.js';
 import RepelMouse from '../components/repelMouse.js';
+
+// TODO: slider 1 - 1000;
+let separationForce = 1;
+let maxVelocity = 2;
+let maxAcceleration = 1;
+let minVelocity = 1;
+
 class Particle {
 	constructor(
 		effect,
@@ -19,6 +26,9 @@ class Particle {
 		this.mouseRepelForce = mouseRepel;
 		this.repel = isRepellingMouse;
 		this.attract = isAttractedToMouse;
+		this.maxVelocity = maxVelocity;
+		this.maxAcceleration = maxAcceleration;
+		this.separationForce = separationForce;
 
 		/**
 		 * Generate random x and y coordinates within the bounds of the effect, offset
@@ -27,18 +37,15 @@ class Particle {
 		this.x = this.size + Math.random() * (this.effect.width - this.size * 2);
 		this.y = this.size + Math.random() * (this.effect.height - this.size * 2);
 
-		// Define the minimum and maximum velocity
-		const minVelocity = 0.2; // Adjust this value as needed
-		const maxVelocity = 0.2; // Adjust this value as needed
 
 		// Initialize the velocities
 		this.vx = Math.random() * (maxVelocity - minVelocity) + minVelocity;
 		this.vy = Math.random() * (maxVelocity - minVelocity) + minVelocity;
 
 		this.maxVelocity = maxVelocity;
-		this.maxAcceleration = 0.1;
+		this.maxAcceleration = maxAcceleration;
 
-		// Randomly invert the velocities to allow for movement in all directions
+		// // Randomly invert the velocities to allow for movement in all directions
 		if (Math.random() < 0.5) this.vx *= -1;
 		if (Math.random() < 0.5) this.vy *= -1;
 
@@ -58,25 +65,50 @@ class Particle {
 
 	update() {
 
+		// Calculate the desired velocity
+		let desiredVx = this.separate(this.effect.particles).x + this.align(this.effect.particles).x + this.cohesion(this.effect.particles).x;
+		let desiredVy = this.separate(this.effect.particles).y + this.align(this.effect.particles).y + this.cohesion(this.effect.particles).y;
 
-		// Calculate the new velocity
-		let newVelocity = this.separate(this.effect.particles);
+		// Calculate the steering force
+		let steerX = desiredVx - this.vx;
+		let steerY = desiredVy - this.vy;
 
-		// Update the velocity
-		this.vx = newVelocity.x;
-		this.vy = newVelocity.y;
+		// Limit the steering force to the max acceleration
+		let steerMagnitude = Math.sqrt(steerX * steerX + steerY * steerY);
+		if (steerMagnitude > this.maxAcceleration) {
+			steerX = (steerX / steerMagnitude) * this.maxAcceleration;
+			steerY = (steerY / steerMagnitude) * this.maxAcceleration;
+		}
+
+		// multiplier
+		let steeringFactor = 0.09;
+
+		// Apply the steering force (
+		this.vx += steerX * steeringFactor;
+		this.vy += steerY * steeringFactor;
+
+		// Limit velo
+		this.limitVelocity();
 
 		// Update the position
 		this.x += this.vx;
 		this.y += this.vy;
+
 		// Handle edge detection
 		this.HandleEdgeDetection();
+	}
 
+	limitVelocity() {
 
-		// To make sure we bounce off the edge, and also stay within the canvas at all times
-		this.HandleEdgeDetection();
+		// Calculate the current speed using the Pythagorean theorem
+		let speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
 
-
+		// If the current speed is greater than the maximum speed
+		if (speed > maxVelocity) {
+			// Scale down the velocity to the maximum speed
+			this.vx = (this.vx / speed) * maxVelocity;
+			this.vy = (this.vy / speed) * maxVelocity;
+		}
 	}
 
 	separate(particles) {
@@ -107,8 +139,6 @@ class Particle {
 			}
 		});
 
-		// console.log('avoidance before normalization:', avoidance);
-
 		// Normalize the avoidance vector and scale to maximum speed
 		let magnitude = Math.hypot(avoidance.x, avoidance.y);
 		if (magnitude !== 0) {
@@ -119,8 +149,6 @@ class Particle {
 			avoidance.y *= this.maxVelocity;
 		}
 
-		// console.log('this.vx:', this.vx);
-		// console.log('this.vy:', this.vy);
 		// Subtract current velocity to get steering force
 		avoidance.x -= this.vx;
 		avoidance.y -= this.vy;
@@ -132,10 +160,106 @@ class Particle {
 			avoidance.y = (avoidance.y / magnitude) * this.maxAcceleration;
 		}
 
-		// console.log('avoidance after limiting:', avoidance);
+		// Scale the avoidance force by the separation force
+		avoidance.x *= this.separationForce;
+		avoidance.y *= this.separationForce;
 
 		return avoidance;
 	}
+
+
+	align(particles) {
+		let perceptionRadius = 40;
+		let totalParticles = 0;
+		let desiredForce = { x: 0, y: 0 };
+
+		particles.forEach(particle => {
+			// Distance between particle and actual particle
+			let dx = this.x - particle.x;
+			let dy = this.y - particle.y;
+			let d = Math.hypot(dx, dy);
+			// If particle is inside perception radius
+			if (d < perceptionRadius && particle != this) {
+				desiredForce.x += particle.vx;
+				desiredForce.y += particle.vy;
+				totalParticles++;
+			}
+		});
+
+		if (totalParticles > 0) {
+			// Average the desired force
+			desiredForce.x /= totalParticles;
+			desiredForce.y /= totalParticles;
+
+			// Set the magnitude of the desired force to maxVelocity
+			let magnitude = Math.hypot(desiredForce.x, desiredForce.y);
+			if (magnitude > 0) {
+				desiredForce.x = (desiredForce.x / magnitude) * this.maxVelocity;
+				desiredForce.y = (desiredForce.y / magnitude) * this.maxVelocity;
+			}
+
+			// Subtract the current velocity to get the steering force
+			desiredForce.x -= this.vx;
+			desiredForce.y -= this.vy;
+
+			// Limit the steering force to maxAcceleration
+			magnitude = Math.hypot(desiredForce.x, desiredForce.y);
+			if (magnitude > this.maxAcceleration) {
+				desiredForce.x = (desiredForce.x / magnitude) * this.maxAcceleration;
+				desiredForce.y = (desiredForce.y / magnitude) * this.maxAcceleration;
+			}
+		}
+		return desiredForce;
+	}
+
+	cohesion(particles) {
+		let perceptionRadius = 30;
+		let totalParticles = 0;
+		let steering = { x: 0, y: 0 };
+
+		particles.forEach(particle => {
+			// Distance between particle and actual particle
+			let dx = this.x - particle.x;
+			let dy = this.y - particle.y;
+			let d = Math.hypot(dx, dy);
+			// If particle is inside perception radius
+			if (d < perceptionRadius && particle != this) {
+				steering.x += particle.x;
+				steering.y += particle.y;
+				totalParticles++;
+			}
+		});
+
+		if (totalParticles > 0) {
+			// Average the steering vector
+			steering.x /= totalParticles;
+			steering.y /= totalParticles;
+
+			// Subtract the current position to get the steering vector
+			steering.x -= this.x;
+			steering.y -= this.y;
+
+			// Set the magnitude of the steering vector to maxVelocity
+			let magnitude = Math.hypot(steering.x, steering.y);
+			if (magnitude > 0) {
+				steering.x = (steering.x / magnitude) * this.maxVelocity;
+				steering.y = (steering.y / magnitude) * this.maxVelocity;
+			}
+
+			// Subtract the current velocity to get the steering force
+			steering.x -= this.vx;
+			steering.y -= this.vy;
+
+			// Limit the steering force to maxAcceleration
+			magnitude = Math.hypot(steering.x, steering.y);
+			if (magnitude > this.maxAcceleration) {
+				steering.x = (steering.x / magnitude) * this.maxAcceleration;
+				steering.y = (steering.y / magnitude) * this.maxAcceleration;
+			}
+		}
+		return steering;
+	}
+
 
 	HandleEdgeDetection() {
 		const buffer = 20;
