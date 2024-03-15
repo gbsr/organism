@@ -15,12 +15,12 @@ ctx.lineWidth = minMax(1, 6);
 
 console.log(ctx);
 
-export let maxDistance = minMax(1, 5);
+export let maxDistance = minMax(1, 15);
 let numberOfParticles = minMax(200, 600);
 
 let alpha = 0.4;
 let particleRepelRadius = [2, 2];
-let particleSizeRange = [1, 3];
+let particleSizeRange = [1, 5];
 let particleColor = 'pink';
 let targetDistance = maxDistance;
 let isRepellingMouse = true;

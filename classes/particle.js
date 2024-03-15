@@ -2,10 +2,10 @@ import { minMax, lerp, GetDeltaTime } from '../helpers.js';
 import RepelMouse from '../components/repelMouse.js';
 
 // TODO: slider 1 - 1000;
-let separationForce = 1.025;
-let maxVelocity = 2;
-let maxAcceleration = 1;
-let minVelocity = 1;
+let separationForce = minMax(0.4, 1.23);
+let maxVelocity = minMax(1, 4);
+let maxAcceleration = minMax(1, 5);
+let minVelocity = minMax(0.3, 1);
 
 class Particle {
 	constructor(
@@ -81,7 +81,7 @@ class Particle {
 		}
 
 		// multiplier
-		let steeringFactor = 0.09;
+		let steeringFactor = minMax(0.01, 0.09);
 
 		// Apply the steering force (
 		this.vx += steerX * steeringFactor;
@@ -169,7 +169,7 @@ class Particle {
 
 
 	align(particles) {
-		let perceptionRadius = 9;
+		let perceptionRadius = 20;
 		let totalParticles = 0;
 		let desiredForce = { x: 0, y: 0 };
 
@@ -213,7 +213,7 @@ class Particle {
 	}
 
 	cohesion(particles) {
-		let perceptionRadius = 30;
+		let perceptionRadius = 35;
 		let totalParticles = 0;
 		let steering = { x: 0, y: 0 };
 
