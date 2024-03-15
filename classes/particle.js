@@ -2,7 +2,7 @@ import { minMax, lerp, GetDeltaTime } from '../helpers.js';
 import RepelMouse from '../components/repelMouse.js';
 
 // TODO: slider 1 - 1000;
-let separationForce = 1;
+let separationForce = 1.025;
 let maxVelocity = 2;
 let maxAcceleration = 1;
 let minVelocity = 1;
@@ -112,7 +112,7 @@ class Particle {
 	}
 
 	separate(particles) {
-		let perceptionRadius = 30; //Radius of perception
+		let perceptionRadius = 40; //Radius of perception
 		let avoidance = { x: 0, y: 0 }; //Average Velocity
 
 		// Loops through every particle to check if they fall
@@ -169,7 +169,7 @@ class Particle {
 
 
 	align(particles) {
-		let perceptionRadius = 40;
+		let perceptionRadius = 9;
 		let totalParticles = 0;
 		let desiredForce = { x: 0, y: 0 };
 
