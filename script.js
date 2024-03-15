@@ -25,6 +25,9 @@ let particleColor = 'pink';
 let targetDistance = maxDistance;
 let isRepellingMouse = true;
 let isAttractedToMouse = false;
+let hasBeenTweaked = false;
+export let maxVelocity = 3;
+export let minVelocity = 1;
 
 const mouseRadiusRange = [10, 80];
 const mouseRepelRange = [10, 20];
@@ -39,7 +42,8 @@ const effect = new Effect(
 	mouseRadiusRange,
 	mouseRepelRange,
 	isRepellingMouse,
-	isAttractedToMouse
+	isAttractedToMouse,
+	hasBeenTweaked,
 );
 export function randomizeParticles(particle) {
 	particle.size = minMax(particleSizeRange[0], particleSizeRange[1]);
@@ -49,7 +53,7 @@ export function randomizeParticles(particle) {
 function updateMaxDistance() {
 	targetDistance = minMax(1, 80);
 	setTimeout(updateMaxDistance, minMax(5000, 20000));
-	console.log('updated max distance: ' + targetDistance);
+	// console.log('updated max distance: ' + targetDistance);
 }
 function animate() {
 	let fillColor = `rgba(77, 77,77, ${alpha})`;
