@@ -11,7 +11,7 @@ const mouseAttractSpeed = minMax(0.2, 0.4);
 
 canvas.width = card.clientWidth;
 canvas.height = card.clientHeight;
-ctx.strokeStyle = 'white';
+ctx.strokeStyle = 'black';
 ctx.lineWidth = minMax(1, 3);
 
 console.log(ctx);
@@ -19,9 +19,9 @@ console.log(ctx);
 export let maxDistance = minMax(20, 50);
 let numberOfParticles = minMax(100, 200);
 
-let particleRepelRadius = [1, 14];
-let particleSizeRange = [1, 4];
-let particleColor = 'white';
+let particleRepelRadius = [1, 2];
+let particleSizeRange = [2, 8];
+let particleColor = 'pink';
 let targetDistance = maxDistance;
 let isRepellingMouse = true;
 let isAttractedToMouse = false;
@@ -53,7 +53,7 @@ function updateMaxDistance() {
 function animate() {
 	let fillColor = `rgba(77, 77,77, ${alpha})`;
 	console.log('alpha adj:' + alpha);
-	// we fill a semitransparent rect each frame to fade out over time. Adjust alpha value to change the mouseAttractSpeed of the fade.
+	// we fill a semitransparent rect each frame to fade out over time. Adjust alpha value to change the speed of the fade.
 	ctx.fillStyle = fillColor;
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 	effect.handleParticles(ctx);
