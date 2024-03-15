@@ -29,9 +29,17 @@ class Particle {
 		this.x = this.size + Math.random() * (this.effect.width - this.size * 2);
 		this.y = this.size + Math.random() * (this.effect.height - this.size * 2);
 
-		this.vx = minMax(-0.01, 0.01);
-		this.vy = minMax(-0.1, 0.01);
-		console.log('Heres my props - ' + this.size + ' : ' + this.color + ' : ' + this.particleRepelRadius);
+		// Define the minimum and maximum velocity
+		const minVelocity = 0.02; // Adjust this value as needed
+		const maxVelocity = 0.5; // Adjust this value as needed
+
+		// Initialize the velocities
+		this.vx = Math.random() * (maxVelocity - minVelocity) + minVelocity;
+		this.vy = Math.random() * (maxVelocity - minVelocity) + minVelocity;
+
+		// Randomly invert the velocities to allow for movement in all directions
+		if (Math.random() < 0.5) this.vx *= -1;
+		if (Math.random() < 0.5) this.vy *= -1;
 
 	}
 
@@ -52,56 +60,6 @@ class Particle {
 
 	update() {
 
-
-
-
-		// let particleRepelRadius = repelForceValue.value;
-		if (this.repel) {
-			let newPosition = RepelMouse(this.effect, this.x, this.y, this.mouseRadius, this.mouseRepelForce);
-			this.x = newPosition.x;
-			this.y = newPosition.y;
-		}
-		// Boids-like behavior
-		for (let other of this.effect.particles) {
-			if (other === this) continue; // Don't interact with self
-
-			const dx = this.x - other.x;
-			const dy = this.y - other.y;
-			const distance = Math.hypot(dx, dy);
-
-
-
-			// // Cohesion: attract when too far
-			let cohesionRadius = this.size + other.size * minMax(50, 380);
-			if (distance > cohesionRadius) {
-				const angle = Math.atan2(dy, dx);
-				this.x -= Math.cos(angle);
-				this.y -= Math.sin(angle);
-			}
-
-			// Alignment: match velocity of nearby particles
-			let alignmentRadius = this.size + other.size * 2;
-			if (distance < alignmentRadius) {
-				let targetVx = minMax(other.vx * 1.3, other.vx * 0.6);
-				let targetVy = minMax(other.vy * 0.3, other.vy * 0.6);
-				this.vx += (targetVx - this.vx) * 0.5;
-				this.vy += (targetVy - this.vy) * 0.5;
-			}
-			// Initialize target velocity
-			this.targetVx = this.vx;// Random movement: steer in a random direction
-			const angle = Math.random() * Math.PI * 2;
-			const speed = 2; // Adjust this value as needed
-			this.targetVx = Math.cos(angle) * speed;
-			this.targetVy = Math.sin(angle) * speed;
-
-			// Lerp between current velocity and target velocity
-			const lerpFactor = 0.05; // Adjust this value as needed
-			this.vx += (this.targetVx - this.vx) * lerpFactor;
-			this.vy += (this.targetVy - this.vy) * lerpFactor;
-		}
-
-		// // Move towards mouse
-
 		this.x += this.vx;
 		this.y += this.vy;
 
@@ -115,10 +73,7 @@ class Particle {
 		}
 		this.x = Math.max(Math.min(this.x, this.effect.width - this.size), this.size);
 		this.y = Math.max(Math.min(this.y, this.effect.height - this.size), this.size);
-
-
 	}
-
 
 }
 
