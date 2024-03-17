@@ -23,7 +23,11 @@ export function randomIntBetween(min, max) {
 	return Math.floor(Math.random() * (max - min + 1) + min);
 }
 export function randomColor() {
-	return `hsl(${Math.random() * 360}, 100%, 50%)`;
+	const r = Math.floor(Math.random() * 255);
+	const g = Math.floor(Math.random() * 255);
+	const b = Math.floor(Math.random() * 255);
+
+	return `rgb(${r}, ${g}, ${b})`;
 }
 
 export function getRGBA(color, alpha) {

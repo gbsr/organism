@@ -7,6 +7,7 @@ let currentNumberOfParticles = 0;
 const minInterval = 1000; // 1 second
 const maxInterval = 5000; // 20 seconds
 const interval = minMax(minInterval, maxInterval);
+const randomParticleColor = randomColor();
 
 export class Effect {
 
@@ -64,21 +65,23 @@ export class Effect {
 	}
 
 	createParticles() {
+		console.log('this particleColor:', this.particleColor);
+		console.log('this random particle color:', randomParticleColor);
 		for (let i = 0; i < this.numberOfParticles; i++) {
 			let particle = new Particle(
 				false,
 				false,
 				i,
-				this.particleColor,
 				this.leaderSpeedMultiplier,
 				this.perceptionRadius,
 				this,
 				this.particleRepelRadius,
 				this.size,
 				this.particleColor,
+				this.randomParticleColor = randomParticleColor,
 				this.mouseRadius,
-				this.mouseRepelForce,
 				this.repel,
+				this.mouseRepelForce,
 				this.attract,
 				this.separationForce = separationForce,
 			);
@@ -116,6 +119,7 @@ export class Effect {
 			particle.perceptionRadius = perceptionRadius;
 			particle.minVelocity = 0.2;
 			particle.maxVelocity = 0.5;
+			particle.size = particle.size + 0.25;
 
 
 			// Call this function again to set up the next tweak
@@ -123,10 +127,6 @@ export class Effect {
 		}, interval);
 	}
 
-	randomizeColor() {
-		randomize = true;
-		this.color = randomColor();
-	}
 	connectParticles(context) {
 		if (!context) {
 			return;

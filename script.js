@@ -16,22 +16,25 @@ ctx.lineWidth = minMax(1, 6);
 console.log(ctx);
 
 export let maxDistance = minMax(1, 15);
-let numberOfParticles = minMax(150, 300);
+let numberOfParticles = minMax(200, 400);
 export let perceptionRadius = minMax(20, 50);
 
-export let attractionForce = 0.01;
+export let attractionForce = 1;;
 export let separationForce = 2.75;
-export let alignmentForce = 0.2;
+export let alignmentForce = 1.8;
 
-let alpha = 0.4;
 let particleRepelRadius = [2, 2];
-let particleSizeRange = [1, 3];
+let particleSizeRange = [1, 4];
 let particleColor = 'pink';
 let targetDistance = maxDistance;
 let isRepellingMouse = true;
 let isAttractedToMouse = false;
 let hasBeenTweaked = false;
 let isLeader = false;
+
+let alpha = 0.2;
+let blurAmount = 10;
+let blurColor = 'green';
 export let maxVelocity = 0.001;
 export let minVelocity = 0.001;
 
@@ -65,12 +68,20 @@ function updateMaxDistance() {
 }
 function animate() {
 	let fillColor = `rgba(77, 77,77, ${alpha})`;
+
+	ctx.shadowBlur = `${blurAmount}`; // Adjust the level of blur
+	ctx.shadowColor = `${blurColor}`; // The color of the blur
+	ctx.shadowOffsetX = 0; // Horizontal offset of the blur
+	ctx.shadowOffsetY = 0; // Vertical offset of the blur
+
 	// we fill a semitransparent rect each frame to fade out over time. Adjust alpha value to change the speed of the fade.
 	ctx.fillStyle = fillColor;
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 	effect.handleParticles(ctx);
 	// lerp from old maxDistance to new distance
 	maxDistance += (targetDistance - maxDistance) * 0.001;
+
+
 
 
 	requestAnimationFrame(animate);

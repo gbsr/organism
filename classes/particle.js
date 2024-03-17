@@ -6,18 +6,14 @@ import { weightedProbabilityBoolean } from './helpers/helpers.js';
 import handleSteeringBehaviour from '../components/steeringBehaviour.js';
 
 // TODO: slider 1 - 1000;
-let separationForce = minMax(10, 25);
+let separationForce = minMax(40, 85);
 let maxVelocity = 0.01;
-let maxAcceleration = 0.0001;
-let minVelocity = 0.0001;
-let mutatedMaxVelocity = 0.1;
-let mutatedMinVelocity = 0.1;
-let leaderSpeedMultiplier = 0.0001;
+let maxAcceleration = 0.01;
+let minVelocity = 0.01;
+let mutatedMaxVelocity = minMax(0.1, 0.5);
+let mutatedMinVelocity = minMax(0.1, 0.5);
 let canvas = document.getElementById('canvas1');
 let context = canvas.getContext('2d');
-let randomize = false;
-let randomParticleColor = randomColor();
-let particleColor = 'pink';
 let debug = false;
 class Particle {
 	static debug = debug;
@@ -30,13 +26,13 @@ class Particle {
 		isMutated,
 		hasBeenTweaked,
 		id,
-		randomParticleColor,
 		leaderSpeedMultiplier,
 		perceptionRadius,
 		effect,
 		particleRepelRadius,
 		particleSize,
 		particleColor,
+		randomParticleColor,
 		mouseRadius,
 		mouseRepel,
 		isRepellingMouse,
@@ -45,13 +41,13 @@ class Particle {
 		this.isMutated = isMutated,
 			this.tweaked = hasBeenTweaked;
 		this.id = id;
-		this.randomParticleColor = randomParticleColor;
 		this.leaderSpeedMultiplier = leaderSpeedMultiplier;
 		this.perceptionRadius = perceptionRadius;
 		this.effect = effect;
 		this.particleRepelRadius = particleRepelRadius;
 		this.size = particleSize;
 		this.color = particleColor;
+		this.randomParticleColor = randomParticleColor;
 		this.mouseRadius = mouseRadius;
 		this.mouseRepelForce = mouseRepel;
 		this.repel = isRepellingMouse;
@@ -96,6 +92,9 @@ class Particle {
 
 	update(particles) {
 
+		if (this.isMutated) {
+			this.color = this.randomParticleColor;
+		}
 		handleSteeringBehaviour(this, particles, context);
 		this.handleEdgeDetection();
 	}
@@ -110,7 +109,12 @@ class Particle {
 		context.beginPath();
 		context.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
 
-		context.fillStyle = this.isMutated ? this.particleColor : particleColor; // Use the particleColor property if the particle has been mutated, otherwise use pink
+		if (this.isMutated) {
+			context.fillStyle = this.randomParticleColor;
+			// console.log('my mutated color is: ' + this.randomParticleColor);
+		} else {
+			context.fillStyle = this.color;
+		}
 		context.fill();
 
 		if (this.debug) {
@@ -151,8 +155,10 @@ class Particle {
 
 	mutate(context) {
 		this.isMutated = true;
-		this.particleColor = randomParticleColor;
-		this.debug = true;
+		this.color = this.randomParticleColor;
+		this.particleColor = 'red';
+		console.log('mutated!');
+		this.debug = false;
 		this.maxVelocity = mutatedMaxVelocity;
 		this.minVelocity = mutatedMinVelocity;
 		// Add a velocity boost
