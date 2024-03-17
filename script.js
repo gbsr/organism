@@ -51,16 +51,11 @@ const mouseRadiusRange = [10, 80];
 const mouseRepelRange = [10, 20];
 
 
-let slider = document.getElementById('slider');
+let attractionSlider = document.getElementById('attractionForce');
+let separationSlider = document.getElementById('separationForce');
+let alignmentSlider = document.getElementById('alignmentForce');
 
-noUiSlider.create(slider, {
-	start: [20, 80],
-	connect: true,
-	range: {
-		'min': 0,
-		'max': 100
-	}
-});
+setupSliderElements();
 
 const effect = new Effect(
 	canvas,
@@ -76,6 +71,23 @@ const effect = new Effect(
 	isLeader,
 	perceptionRadius,
 );
+function setupSliderElements() {
+	const sliders = [
+		{ element: attractionSlider, start: [0, 2], range: { min: 0, max: 5 } },
+		{ element: separationSlider, start: [20, 80], range: { min: 0, max: 100 } },
+		{ element: alignmentSlider, start: [20, 80], range: { min: 0, max: 100 } },
+	];
+
+	sliders.forEach(slider => {
+		noUiSlider.create(slider.element, {
+			start: slider.start,
+			connect: true,
+			range: slider.range,
+			tooltips: [true, true],
+		});
+	});
+}
+
 export function randomizeParticles(particle) {
 	particle.size = minMax(particleSizeRange[0], particleSizeRange[1]);
 	particle.color = particleColor;
