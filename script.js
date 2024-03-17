@@ -10,21 +10,31 @@ const mouseAttractSpeed = minMax(0.2, 0.4);
 
 canvas.width = card.clientWidth;
 canvas.height = card.clientHeight;
-ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-ctx.lineWidth = minMax(1, 6);
+// ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+ctx.strokeStyle = 'pink';
+ctx.lineWidth = minMax(1, 4);
 
 console.log(ctx);
 
 export let maxDistance = minMax(1, 15);
-let numberOfParticles = minMax(200, 400);
+let numberOfParticles = minMax(40, 80);
 export let perceptionRadius = minMax(20, 50);
 
-export let attractionForce = 1;;
-export let separationForce = 2.75;
-export let alignmentForce = 1.8;
+// swarming behaviour
+export let attractionForce = 0.6;
+export let separationForce = 0.8;
+export let alignmentForce = 0.75;
+
+export let maxVelocity = 0.2;
+export let minVelocity = 0.02;
+export let maxAcceleration = 0.3;
+export let mutatedMaxVelocity = 0.1;
+export let mutatedMinVelocity = 0.005;
+
+
 
 let particleRepelRadius = [2, 2];
-let particleSizeRange = [1, 4];
+let particleSizeRange = [5, 10];
 let particleColor = 'pink';
 let targetDistance = maxDistance;
 let isRepellingMouse = true;
@@ -32,11 +42,9 @@ let isAttractedToMouse = false;
 let hasBeenTweaked = false;
 let isLeader = false;
 
-let alpha = 0.2;
+let alpha = 0.3;
 let blurAmount = 10;
 let blurColor = 'green';
-export let maxVelocity = 0.001;
-export let minVelocity = 0.001;
 
 const mouseRadiusRange = [10, 80];
 const mouseRepelRange = [10, 20];

@@ -1,17 +1,10 @@
-import { minMax, randomColor } from './helpers/helpers.js';
-import DebugCircle from './helpers/debugCircle.js';
-import RepelMouse from '../components/repelMouse.js';
 // import AttractMouse from '../components/attractMouse.js';
-import { weightedProbabilityBoolean } from './helpers/helpers.js';
 import handleSteeringBehaviour from '../components/steeringBehaviour.js';
+import { separationForce } from '../script.js';
+import { maxVelocity, minVelocity, maxAcceleration, mutatedMaxVelocity, mutatedMinVelocity } from '../script.js';
 
 // TODO: slider 1 - 1000;
-let separationForce = minMax(40, 85);
-let maxVelocity = 0.01;
-let maxAcceleration = 0.01;
-let minVelocity = 0.01;
-let mutatedMaxVelocity = minMax(0.1, 0.5);
-let mutatedMinVelocity = minMax(0.1, 0.5);
+
 let canvas = document.getElementById('canvas1');
 let context = canvas.getContext('2d');
 let debug = false;
@@ -111,7 +104,6 @@ class Particle {
 
 		if (this.isMutated) {
 			context.fillStyle = this.randomParticleColor;
-			// console.log('my mutated color is: ' + this.randomParticleColor);
 		} else {
 			context.fillStyle = this.color;
 		}
@@ -163,9 +155,9 @@ class Particle {
 		this.minVelocity = mutatedMinVelocity;
 		// Add a velocity boost
 		let angle = Math.random() * Math.PI * 2; // Random direction
-		let speed = 20; // Change this to the speed you want
-		this.vx = Math.cos(angle) * speed;
-		this.vy = Math.sin(angle) * speed;
+		// let speed = 20; // Change this to the speed you want
+		this.vx = Math.cos(angle);
+		this.vy = Math.sin(angle);;
 	}
 
 
