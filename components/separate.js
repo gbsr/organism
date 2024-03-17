@@ -1,34 +1,56 @@
-import { separationForce } from "../script.js";
-
+import { separationForce, perceptionRadius } from "../script.js";
 function separate(particle, particles) {
-	let avoidance = { x: 0, y: 0 };
-	let count = 0;
+	let avoidance = { x: 0, y: 0 }; //Average Velocity
 
-	for (let other of particles) {
+	// Loops through every particle to check if they fall
+	// inside the perception Radius
+	particles.forEach(other => {
+		// Distance between particle and actual particle
 		let dx = particle.x - other.x;
 		let dy = particle.y - other.y;
-		let distance = Math.sqrt(dx * dx + dy * dy);
+		let d = Math.hypot(dx, dy);
 
-		if (other !== particle && distance < particle.perceptionRadius) {
-			let diff = { x: dx / distance, y: dy / distance };
+		// If particle is inside perception radius
+		if (d < perceptionRadius && particle !== other) {
+			// Calculates the average avoidance vector
+			// which is inverse to the distance vector
+			// between two particles
+			let diff = { x: dx, y: dy };
+			diff.x /= d * d; // Weight by distance squared
+			diff.y /= d * d; // Weight by distance squared
+
+			// Adds to the avoidance force vector
+			// the proportional inverse vector
 			avoidance.x += diff.x;
 			avoidance.y += diff.y;
-			count++;
 		}
+	});
+
+	// Normalize the avoidance vector and scale to maximum speed
+	let magnitude = Math.hypot(avoidance.x, avoidance.y);
+	if (magnitude !== 0) {
+		avoidance.x /= magnitude;
+		avoidance.y /= magnitude;
+
+		avoidance.x *= particle.maxVelocity;
+		avoidance.y *= particle.maxVelocity;
 	}
 
-	if (count > 0) {
-		avoidance.x /= count;
-		avoidance.y /= count;
+	// Subtract current velocity to get steering force
+	avoidance.x -= particle.vx;
+	avoidance.y -= particle.vy;
 
-		let magnitude = Math.sqrt(avoidance.x * avoidance.x + avoidance.y * avoidance.y);
-		if (magnitude > 0) {
-			avoidance.x = (avoidance.x / magnitude) * particle.maxVelocity - particle.vx;
-			avoidance.y = (avoidance.y / magnitude) * particle.maxVelocity - particle.vy;
-		}
+	// Limit force to maximum steering force
+	magnitude = Math.hypot(avoidance.x, avoidance.y);
+	if (magnitude > particle.maxAcceleration) {
+		avoidance.x = (avoidance.x / magnitude) * particle.maxAcceleration;
+		avoidance.y = (avoidance.y / magnitude) * particle.maxAcceleration;
 	}
+
+	// Scale the avoidance force by the separation force
+	avoidance.x *= separationForce;
+	avoidance.y *= separationForce;
 
 	return avoidance;
 }
-
 export default separate;

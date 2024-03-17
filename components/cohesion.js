@@ -1,15 +1,18 @@
+import { perceptionRadius } from "../script.js";
+
 function cohesion(particle, particles) {
 	let totalParticles = 0;
 	let steering = { x: 0, y: 0 };
 
-	particles.forEach(otherParticle => {
-		let dx = otherParticle.x - particle.x;
-		let dy = otherParticle.y - particle.y;
+	particles.forEach(other => {
+		// Distance between particle and actual particle
+		let dx = particle.x - other.x;
+		let dy = particle.y - other.y;
 		let d = Math.hypot(dx, dy);
-
-		if (d < (particle.isLeader ? particle.perceptionRadius : particle.perceptionRadius) && otherParticle != particle) {
-			steering.x += otherParticle.x;
-			steering.y += otherParticle.y;
+		// If particle is inside perception radius
+		if (d < perceptionRadius && other != particle) {
+			steering.x += other.x;
+			steering.y += other.y;
 			totalParticles++;
 		}
 	});

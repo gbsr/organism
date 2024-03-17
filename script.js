@@ -1,3 +1,4 @@
+
 import { Effect } from '../classes/effect.js';
 import { minMax } from './classes/helpers/helpers.js';
 
@@ -21,13 +22,13 @@ let numberOfParticles = minMax(40, 80);
 export let perceptionRadius = minMax(20, 50);
 
 // swarming behaviour
-export let attractionForce = 0.6;
+export let attractionForce = 1.35;
 export let separationForce = 0.8;
 export let alignmentForce = 0.75;
 
-export let maxVelocity = 0.2;
-export let minVelocity = 0.02;
-export let maxAcceleration = 0.3;
+export let maxVelocity = 1;
+export let minVelocity = 0.5;
+export let maxAcceleration = 1.35;
 export let mutatedMaxVelocity = 0.1;
 export let mutatedMinVelocity = 0.005;
 
@@ -49,6 +50,17 @@ let blurColor = 'green';
 const mouseRadiusRange = [10, 80];
 const mouseRepelRange = [10, 20];
 
+
+let slider = document.getElementById('slider');
+
+noUiSlider.create(slider, {
+	start: [20, 80],
+	connect: true,
+	range: {
+		'min': 0,
+		'max': 100
+	}
+});
 
 const effect = new Effect(
 	canvas,
