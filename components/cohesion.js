@@ -1,16 +1,15 @@
-function cohesion(particles, particle) {
+function cohesion(particle, particles) {
 	let totalParticles = 0;
 	let steering = { x: 0, y: 0 };
 
-	particles.forEach(particle => {
-		// Distance between particle and actual particle
-		let dx = particle.x - particle.x;
-		let dy = particle.y - particle.y;
+	particles.forEach(otherParticle => {
+		let dx = otherParticle.x - particle.x;
+		let dy = otherParticle.y - particle.y;
 		let d = Math.hypot(dx, dy);
-		// If particle is inside perception radius of the leader
-		if (d < (particle.isLeader ? particle.perceptionRadius : particle.perceptionRadius) && particle != particle) {
-			steering.x += particle.x;
-			steering.y += particle.y;
+
+		if (d < (particle.isLeader ? particle.perceptionRadius : particle.perceptionRadius) && otherParticle != particle) {
+			steering.x += otherParticle.x;
+			steering.y += otherParticle.y;
 			totalParticles++;
 		}
 	});

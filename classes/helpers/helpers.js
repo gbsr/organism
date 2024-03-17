@@ -25,6 +25,17 @@ export function randomIntBetween(min, max) {
 export function randomColor() {
 	return `hsl(${Math.random() * 360}, 100%, 50%)`;
 }
+
+export function getRGBA(color, alpha) {
+	const colors = {
+		'red': '255,0,0',
+		'green': '0,255,0',
+		'blue': '0,0,255',
+		// Add more colors as needed
+	};
+
+	return `rgba(${colors[color]},${alpha})`;
+}
 export function randomFromArray(array) {
 	return array[Math.floor(Math.random() * array.length)];
 }

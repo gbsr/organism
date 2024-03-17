@@ -1,11 +1,27 @@
-import { minMax } from '../helpers.js';
-import { maxVelocity } from '../script.js';
-import separate from './avoidance.js';
+import { maxVelocity, minVelocity, attractionForce, separationForce, alignmentForce, perceptionRadius } from '../script.js';
+import separate from './separate.js';
 import align from './align.js';
 import cohesion from './cohesion.js';
-function handleSteeringBehaviour(particle) {
-	let desiredVx = separate(particle.effect.particles, particle).x + align(particle.effect.particles, particle).x + cohesion(particle.effect.particles, particle).x;
-	let desiredVy = separate(particle.effect.particles, particle).y + align(particle.effect.particles, particle).y + cohesion(particle.effect.particles, particle).y;
+
+function handleSteeringBehaviour(particle, particles, context) {
+
+	// calculate separation forces
+	let separation = separate(particle, particles);
+	separation.x *= separationForce;
+	separation.y *= separationForce;
+
+	// calculate alignment and cohesion forces
+	let alignment = align(particle, particles);
+	alignment.x *= alignmentForce;
+	alignment.y *= alignmentForce;
+
+	let cohesionForce = cohesion(particle, particles);
+	cohesionForce.x *= attractionForce;
+	cohesionForce.y *= attractionForce;
+
+	// balance the forces
+	let desiredVx = separation.x + alignment.x + cohesionForce.x;
+	let desiredVy = separation.y + alignment.y + cohesionForce.y;
 
 	// Calculate the steering force
 	let steerX = desiredVx - particle.vx;
@@ -18,26 +34,38 @@ function handleSteeringBehaviour(particle) {
 		steerY = (steerY / steerMagnitude) * particle.maxAcceleration;
 	}
 
-	// multiplier
-	let steeringFactor = minMax(0.01, 0.09);
-
-	// Apply the steering force (
-	particle.vx += steerX * steeringFactor;
-	particle.vy += steerY * steeringFactor;
+	// Apply the steering force
+	particle.vx += steerX;
+	particle.vy += steerY;
 
 	// Update the position
 	particle.x += particle.vx;
 	particle.y += particle.vy;
 
 	// limit velocity
-	// Calculate the current speed using the Pythagorean theorem
 	let speed = Math.sqrt(particle.vx * particle.vx + particle.vy * particle.vy);
+	if (speed > particle.maxVelocity) {
+		particle.vx = (particle.vx / speed) * particle.maxVelocity;
+		particle.vy = (particle.vy / speed) * particle.maxVelocity;
+	} else if (speed < particle.minVelocity) {
+		particle.vx = (particle.vx / speed) * particle.minVelocity;
+		particle.vy = (particle.vy / speed) * particle.minVelocity;
+	}
 
-	// If the current speed is greater than the maximum speed
-	if (speed > maxVelocity) {
-		// Scale down the velocity to the maximum speed
-		particle.vx = (particle.vx / speed) * maxVelocity;
-		particle.vy = (particle.vy / speed) * maxVelocity;
+	// Check if the particle is within the perception radius of any mutated particle
+	for (let other of particles) {
+		if (other.isMutated) {
+			let dx = particle.x - other.x;
+			let dy = particle.y - other.y;
+			let distance = Math.sqrt(dx * dx + dy * dy);
+
+			if (distance < perceptionRadius) {
+				// Make the particle follow the mutated particle
+				particle.vx += (other.x - particle.x) * attractionForce / 100;
+				particle.vy += (other.y - particle.y) * attractionForce / 100;
+				particle.particleColor = other.randomParticleColor;
+			}
+		}
 	}
 }
 

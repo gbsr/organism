@@ -1,24 +1,28 @@
-import { minMax } from '../helpers.js';
-import { randomizeParticles, maxDistance } from '../script.js';
+import { minMax } from './helpers/helpers.js';
+import { randomizeParticles, maxDistance, perceptionRadius, separationForce } from '../script.js';
 import Particle from './particle.js';
-import { randomColor } from '../helpers.js';
+import { randomColor } from './helpers/helpers.js';
 
 let currentNumberOfParticles = 0;
-let isLeader = false;
+const minInterval = 1000; // 1 second
+const maxInterval = 5000; // 20 seconds
+const interval = minMax(minInterval, maxInterval);
+
 export class Effect {
 
 	constructor(
 		canvas,
 		numberOfParticles,
 		particleSizeRange,
-		particleColor,
 		particleRepelRadius,
+		particleColor,
 		mouseRadiusRange,
 		mouseRepelRange,
 		isRepellingMouse,
 		isAttractedToMouse,
 		hasBeenTweaked,
 		isLeader,
+		perceptionRadius,
 
 	) {
 		this.canvas = canvas;
@@ -35,6 +39,8 @@ export class Effect {
 		this.attract = isAttractedToMouse;
 		this.tweaked = hasBeenTweaked;
 		this.isLeader = isLeader;
+		this.perceptionRadius = perceptionRadius;
+		this.tweakParticlesCalled = false;
 		this.createParticles();
 		this.tweakParticles();
 
@@ -54,102 +60,62 @@ export class Effect {
 			this.mouse.y = undefined;
 		}
 		);
-
+		console.log('Effect constructor perceptionRadius:', perceptionRadius);
 	}
 
 	createParticles() {
 		for (let i = 0; i < this.numberOfParticles; i++) {
 			let particle = new Particle(
+				false,
+				false,
 				i,
+				this.particleColor,
+				this.leaderSpeedMultiplier,
+				this.perceptionRadius,
 				this,
 				this.particleRepelRadius,
 				this.size,
-				this.leaderSpeedMultiplier,
 				this.particleColor,
 				this.mouseRadius,
 				this.mouseRepelForce,
 				this.repel,
 				this.attract,
-				this.hasBeenTweaked = false,
-				this.isLeader = false,
-				this.perceptionRadius,);
+				this.separationForce = separationForce,
+			);
 			this.particles.push(particle);
 			currentNumberOfParticles = this.numberOfParticles;
 			currentNumberOfParticles++;
 			randomizeParticles(particle);
 		}
+		for (let i = 0; i < this.particles.length; i++) {
+			this.particles[i].update(this.particles);
+		}
 	}
 
 	handleParticles(context) {
+		this.context = context;
 		this.connectParticles(context);
 		let leader = this.particles.find(particle => particle.isLeader);
-		// console.log('leader: ' + leader + this.particles.i);
-
-
-		let hasLoggedLeader = false; // Add this line before your loop
 
 		this.particles.forEach(particle => {
 
-			if (leader) {
-				// Set the velocity of non-leader particles based on the leader's velocity
-				let dx = leader.x - particle.x;
-				let dy = leader.y - particle.y;
-				let distance = Math.sqrt(dx * dx + dy * dy);
-				// if (distance < leader.perceptionRadius) {
-				// 	particle.velocityX = leader.vx;
-				// 	particle.velocityY = leader.vy;
-				// } else {
-				// 	// Set the velocity to zero if the particle is not within the leader's perception radius
-				// 	particle.velocityX = 0;
-				// 	particle.velocityY = 0;
-				// }
-			}
+
 			particle.draw(context);
-			particle.update();
+			particle.update(this.particles);
 		});
 	}
 	tweakParticles(context) {
-		// Define the min and max interval (in milliseconds)
-		const minInterval = 1000; // 1 second
-		const maxInterval = 2000; // 20 seconds
 
-		// Calculate a random interval within the min-max range
-		const interval = minMax(minInterval, maxInterval);
+		const index = Math.floor(Math.random() * this.particles.length);
+		const particle = this.particles[index];
 
 		// Set a timeout to tweak a particle after the interval
+		// Select a random particle
 		setTimeout(() => {
-			// Select a random particle
-			const index = Math.floor(Math.random() * this.particles.length);
-			const particle = this.particles[index];
-
-			// // If the particle hasn't been tweaked already
-			if (!particle.tweaked) {
-				particle.isLeader = true;
-				particle.tweaked = true;
-				let tweakedPerceptionRadius = minMax(10, 45);
-				particle.perceptionRadius += tweakedPerceptionRadius;
-				particle.setLeader(index, particle.isLeader, particle.isTweaked, particle.color, particle.leaderSpeedMultiplier, particle.perceptionRadius);
-				// particle.setLeader(index, particle.isLeader, particle.tweaked, this.particleColor, particle.leaderSpeedMultiplier, particle.perceptionRadius);
-				// 	// Tweak the particle
-
-				// 	// Mark the particle as tweaked
-				// 	console.log('Tweaked particle ' + index + '!)');
-			}
-			if (isLeader) {
-				this.color = randomColor();
-				this.tweaked = true;
-				this.vx = Math.random() * (maxVelocity - minVelocity) + minVelocity;
-				this.vy = Math.random() * (maxVelocity - minVelocity) + minVelocity;
-				if (Math.random() < 0.5) this.vx *= -1;
-				if (Math.random() < 0.5) this.vy *= -1;
-			} else {
-				// this.color = particleColor;
-				isLeader = false;
-				this.tweaked = false;
-				this.vx = 0;
-				this.vy = 0;
-			}
-
+			particle.mutate(this.context);
+			particle.perceptionRadius = perceptionRadius;
+			particle.minVelocity = 0.2;
+			particle.maxVelocity = 0.5;
 
 
 			// Call this function again to set up the next tweak
@@ -157,7 +123,10 @@ export class Effect {
 		}, interval);
 	}
 
-
+	randomizeColor() {
+		randomize = true;
+		this.color = randomColor();
+	}
 	connectParticles(context) {
 		if (!context) {
 			return;

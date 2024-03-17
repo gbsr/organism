@@ -1,26 +1,38 @@
-import { minMax, randomColor } from '../helpers.js';
+import { minMax, randomColor } from './helpers/helpers.js';
+import DebugCircle from './helpers/debugCircle.js';
 import RepelMouse from '../components/repelMouse.js';
 // import AttractMouse from '../components/attractMouse.js';
-import { weightedProbabilityBoolean } from '../helpers.js';
+import { weightedProbabilityBoolean } from './helpers/helpers.js';
 import handleSteeringBehaviour from '../components/steeringBehaviour.js';
 
 // TODO: slider 1 - 1000;
-let separationForce = minMax(0.4, 1.23);
-let maxVelocity = 0.00001;
-let maxAcceleration = 0.00001;
-let minVelocity = 0.00001;
-let perceptionRadius = minMax(1, 5);
-let leaderSpeedMultiplier = minMax(1, 5);
+let separationForce = minMax(10, 25);
+let maxVelocity = 0.01;
+let maxAcceleration = 0.0001;
+let minVelocity = 0.0001;
+let mutatedMaxVelocity = 0.1;
+let mutatedMinVelocity = 0.1;
+let leaderSpeedMultiplier = 0.0001;
+let canvas = document.getElementById('canvas1');
+let context = canvas.getContext('2d');
+let randomize = false;
 let randomParticleColor = randomColor();
-
-
+let particleColor = 'pink';
+let debug = false;
 class Particle {
+	static debug = debug;
 	/**
 	 * Particle class constructor.
 	 * Initializes a particle instance with provided parameters.
 	 */
+
 	constructor(
+		isMutated,
+		hasBeenTweaked,
 		id,
+		randomParticleColor,
+		leaderSpeedMultiplier,
+		perceptionRadius,
 		effect,
 		particleRepelRadius,
 		particleSize,
@@ -29,32 +41,30 @@ class Particle {
 		mouseRepel,
 		isRepellingMouse,
 		isAttractedToMouse,
-		hasBeenTweaked = false,
-		perceptionRadius,
-		isLeader = false
 	) {
+		this.isMutated = isMutated,
+			this.tweaked = hasBeenTweaked;
 		this.id = id;
-		this.effect = effect;
-		this.size = particleSize;
+		this.randomParticleColor = randomParticleColor;
 		this.leaderSpeedMultiplier = leaderSpeedMultiplier;
-		this.color = particleColor;
+		this.perceptionRadius = perceptionRadius;
+		this.effect = effect;
 		this.particleRepelRadius = particleRepelRadius;
+		this.size = particleSize;
+		this.color = particleColor;
 		this.mouseRadius = mouseRadius;
 		this.mouseRepelForce = mouseRepel;
 		this.repel = isRepellingMouse;
 		this.attract = isAttractedToMouse;
-		this.maxVelocity = 0;
+		this.minVelocity = minVelocity;
+		this.maxVelocity = maxVelocity;
 		this.maxAcceleration = maxAcceleration;
 		this.separationForce = separationForce;
-		this.tweaked = hasBeenTweaked;
-		this.perceptionRadius = perceptionRadius;
-		this.isLeader = isLeader;
-
-		this.InitRandomPositions();
+		this.particles = [],
+			this.InitRandomPositions();
 		this.InitVelocities();
-
-
-
+		this.mutate = this.mutate.bind(this);
+		this.debug = debug;
 	}
 
 	/**
@@ -72,8 +82,8 @@ class Particle {
 	 * a random initial velocity.
 	 */
 	InitVelocities() {
-		this.vx = Math.random() * (maxVelocity - minVelocity) + minVelocity;
-		this.vy = Math.random() * (maxVelocity - minVelocity) + minVelocity;
+		this.vx = Math.random() * (maxVelocity - minVelocity) + minVelocity + 0.01;
+		this.vy = Math.random() * (maxVelocity - minVelocity) + minVelocity + 0.01;
 
 		/**
 		 * Randomly negate the x and y velocity components.
@@ -84,29 +94,37 @@ class Particle {
 	}
 
 
+	update(particles) {
+
+		handleSteeringBehaviour(this, particles, context);
+		this.handleEdgeDetection();
+	}
 
 	/**
 	 * Draws the particle on the canvas.
 	 * Begins a new path, draws a circle at the particle's x,y position with its size.
 	 * Fills the circle with the particle's color.
-	 */
+	*/
 	draw(context) {
 		if (!context) return;
 		context.beginPath();
 		context.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
+
+		context.fillStyle = this.isMutated ? this.particleColor : particleColor; // Use the particleColor property if the particle has been mutated, otherwise use pink
 		context.fill();
-		context.fillStyle = this.color;
+
+		if (this.debug) {
+			context.save();
+			context.beginPath();
+			context.lineWidth = 1;
+			context.arc(this.x, this.y, this.perceptionRadius, 0, Math.PI * 2);
+			// console.log('perceptionRadius in debug: ' + this.perceptionRadius);
+			context.strokeStyle = 'red'; // Change this to any color you want for the debug circle
+			context.stroke();
+			context.restore();
+		}
 	}
 
-	update() {
-
-
-		handleSteeringBehaviour(this);
-		// avoidance();
-		// align();
-		// cohesion();
-		this.handleEdgeDetection();
-	}
 
 	/**
 	 * Handles detecting when the particle reaches the edge of the canvas.
@@ -131,18 +149,19 @@ class Particle {
 		this.y = Math.max(Math.min(this.y, this.effect.height - this.size - buffer), this.size + buffer);
 	}
 
-	setLeader(id, isLeader, isTweaked, p) {
-		console.log('leaderSpeedMultiplier: ' + this.leaderSpeedMultiplier);
-		this.isLeader = isLeader;
-		this.tweaked = isTweaked;
-		this.id = id;
-		this.color = randomColor();
-		this.vx = Math.random() * (maxVelocity - minVelocity) + minVelocity + this.leaderSpeedMultiplier;
-		this.vy = Math.random() * (maxVelocity - minVelocity) + minVelocity + this.leaderSpeedMultiplier;
-		this.tweaked = true;
-		if (Math.random() < 0.5) this.vx *= -1;
-		if (Math.random() < 0.5) this.vy *= -1;
+	mutate(context) {
+		this.isMutated = true;
+		this.particleColor = randomParticleColor;
+		this.debug = true;
+		this.maxVelocity = mutatedMaxVelocity;
+		this.minVelocity = mutatedMinVelocity;
+		// Add a velocity boost
+		let angle = Math.random() * Math.PI * 2; // Random direction
+		let speed = 20; // Change this to the speed you want
+		this.vx = Math.cos(angle) * speed;
+		this.vy = Math.sin(angle) * speed;
 	}
+
 
 
 

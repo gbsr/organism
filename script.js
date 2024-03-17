@@ -1,5 +1,5 @@
 import { Effect } from '../classes/effect.js';
-import { minMax } from './helpers.js';
+import { minMax } from './classes/helpers/helpers.js';
 
 const canvas = document.getElementById('canvas1');
 const card = document.getElementById('card');
@@ -16,18 +16,24 @@ ctx.lineWidth = minMax(1, 6);
 console.log(ctx);
 
 export let maxDistance = minMax(1, 15);
-let numberOfParticles = minMax(200, 600);
+let numberOfParticles = minMax(150, 300);
+export let perceptionRadius = minMax(20, 50);
+
+export let attractionForce = 0.01;
+export let separationForce = 2.75;
+export let alignmentForce = 0.2;
 
 let alpha = 0.4;
 let particleRepelRadius = [2, 2];
-let particleSizeRange = [1, 5];
+let particleSizeRange = [1, 3];
 let particleColor = 'pink';
 let targetDistance = maxDistance;
 let isRepellingMouse = true;
 let isAttractedToMouse = false;
 let hasBeenTweaked = false;
-export let maxVelocity = 3;
-export let minVelocity = 1;
+let isLeader = false;
+export let maxVelocity = 0.001;
+export let minVelocity = 0.001;
 
 const mouseRadiusRange = [10, 80];
 const mouseRepelRange = [10, 20];
@@ -37,13 +43,15 @@ const effect = new Effect(
 	canvas,
 	numberOfParticles,
 	particleSizeRange,
-	particleColor,
 	particleRepelRadius,
+	particleColor,
 	mouseRadiusRange,
 	mouseRepelRange,
 	isRepellingMouse,
 	isAttractedToMouse,
 	hasBeenTweaked,
+	isLeader,
+	perceptionRadius,
 );
 export function randomizeParticles(particle) {
 	particle.size = minMax(particleSizeRange[0], particleSizeRange[1]);
@@ -63,9 +71,10 @@ function animate() {
 	effect.handleParticles(ctx);
 	// lerp from old maxDistance to new distance
 	maxDistance += (targetDistance - maxDistance) * 0.001;
+
+
 	requestAnimationFrame(animate);
 }
-
 
 // run loop
 updateMaxDistance();

@@ -1,16 +1,16 @@
-function align(particles, particle) {
+function align(particle, particles) {
 	let totalParticles = 0;
 	let desiredForce = { x: 0, y: 0 };
 
-	particles.forEach(particle => {
-		let dx = particle.x - particle.x;
-		let dy = particle.y - particle.y;
+	particles.forEach(otherParticle => {
+		let dx = otherParticle.x - particle.x;
+		let dy = otherParticle.y - particle.y;
 		let d = Math.hypot(dx, dy);
 
-		if (particle.isLeader && d < particle.perceptionRadius) {
+		if (otherParticle.isLeader && d < particle.perceptionRadius) {
 			// Unique behavior for the leader
-			desiredForce.x += particle.vx;
-			desiredForce.y += particle.vy;
+			desiredForce.x += otherParticle.vx;
+			desiredForce.y += otherParticle.vy;
 			totalParticles++;
 		}
 	});
@@ -20,12 +20,16 @@ function align(particles, particle) {
 		desiredForce.x /= totalParticles;
 		desiredForce.y /= totalParticles;
 
-		// Set the magnitude of the desired force to maxVelocity
+		// Normalize the desired force
 		let magnitude = Math.hypot(desiredForce.x, desiredForce.y);
 		if (magnitude > 0) {
-			desiredForce.x = (desiredForce.x / magnitude) * particle.maxVelocity;
-			desiredForce.y = (desiredForce.y / magnitude) * particle.maxVelocity;
+			desiredForce.x /= magnitude;
+			desiredForce.y /= magnitude;
 		}
+
+		// Scale the desired force by the particle's maximum velocity
+		desiredForce.x *= particle.maxVelocity;
+		desiredForce.y *= particle.maxVelocity;
 
 		// Subtract the current velocity to get the steering force
 		desiredForce.x -= particle.vx;
@@ -40,6 +44,5 @@ function align(particles, particle) {
 	}
 	return desiredForce;
 }
-
 
 export default align;

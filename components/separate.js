@@ -1,4 +1,6 @@
-function separate(particles, particle) {
+import { separationForce } from "../script.js";
+
+function separate(particle, particles) {
 	let avoidance = { x: 0, y: 0 }; //Average Velocity
 
 	// Loops through every particle to check if they fall
@@ -47,8 +49,8 @@ function separate(particles, particle) {
 	}
 
 	// Scale the avoidance force by the separation force
-	avoidance.x *= particle.separationForce;
-	avoidance.y *= particle.separationForce;
+	avoidance.x *= separationForce;
+	avoidance.y *= separationForce;
 
 	return avoidance;
 }
