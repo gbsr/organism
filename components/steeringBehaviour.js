@@ -1,7 +1,7 @@
 import { maxVelocity, minVelocity, attractionForce, separationForce, alignmentForce, perceptionRadius } from '../script.js';
-import separate from './separate.js';
-import align from './align.js';
-import cohesion from './cohesion.js';
+import separate from '../separate.js';
+import align from '../align.js';
+import cohesion from '../cohesion.js';
 import { minMax, GetDeltaTime, lerp } from '../classes/helpers/helpers.js';
 
 /**

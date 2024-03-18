@@ -1,7 +1,7 @@
-import { minMax } from './helpers/helpers.js';
+import { minMax } from '../helpers/helpers.js';
 import { randomizeParticles, maxDistance, perceptionRadius, separationForce } from '../script.js';
-import Particle from './particle.js';
-import { randomColor } from './helpers/helpers.js';
+import Particle from '../particle.js';
+import { randomColor } from '../helpers/helpers.js';
 
 let currentNumberOfParticles = 0;
 const minInterval = 1000; // 1 second
