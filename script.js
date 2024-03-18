@@ -19,22 +19,22 @@ console.log(ctx);
 
 export let maxDistance = minMax(1, 15);
 let numberOfParticles = minMax(40, 80);
-export let perceptionRadius = minMax(20, 50);
+export let perceptionRadius = minMax(40, 80);
 
 // swarming behaviour
-export let attractionForce = 1.35;
+export let cohesionForce = 0;
 export let separationForce = 0.8;
-export let alignmentForce = 0.75;
+export let alignmentForce = 0;
 
-export let maxVelocity = 1;
-export let minVelocity = 0.5;
+export let maxVelocity = 1.4;
+export let minVelocity = 0.9;
 export let maxAcceleration = 1.35;
 export let mutatedMaxVelocity = 0.1;
 export let mutatedMinVelocity = 0.005;
 
 
 
-let particleRepelRadius = [2, 2];
+let particleRepelRadius = [30, 90];
 let particleSizeRange = [5, 10];
 let particleColor = 'pink';
 let targetDistance = maxDistance;
@@ -71,11 +71,18 @@ const effect = new Effect(
 	isLeader,
 	perceptionRadius,
 );
+
+// Assuming 'particles' is an array that holds your particles
+// and 'spawnParticle' is a function that spawns a new particle
+
+document.querySelector('.reloadSystem').addEventListener('click', function () {
+	effect.handleParticles(ctx, true);
+});
 function setupSliderElements() {
 	const sliders = [
-		{ element: attractionSlider, start: [0, 2], range: { min: 0, max: 5 } },
-		{ element: separationSlider, start: [20, 80], range: { min: 0, max: 100 } },
-		{ element: alignmentSlider, start: [20, 80], range: { min: 0, max: 100 } },
+		{ element: attractionSlider, start: [0.01, 0.5], range: { 'min': 0, '10%': 0.1, '50%': 0.5, 'max': 10 }, variable: 'attractionForce' },
+		{ element: separationSlider, start: [0.01, 0.5], range: { 'min': 0, '10%': 0.1, '50%': 0.5, 'max': 5 }, variable: 'separationForce' },
+		{ element: alignmentSlider, start: [0.01, 0.5], range: { 'min': 0, '10%': 0.1, '50%': 0.5, 'max': 5 }, variable: 'alignmentForce' },
 	];
 
 	sliders.forEach(slider => {
@@ -85,9 +92,20 @@ function setupSliderElements() {
 			range: slider.range,
 			tooltips: [true, true],
 		});
+
+		// Listen for the update event
+		slider.element.noUiSlider.on('update', function (values, handle) {
+			// Update the variable with the new value
+			if (slider.variable === 'attractionForce') {
+				cohesionForce = Number(values[handle]);
+			} else if (slider.variable === 'separationForce') {
+				separationForce = Number(values[handle]);
+			} else if (slider.variable === 'alignmentForce') {
+				alignmentForce = Number(values[handle]);
+			}
+		});
 	});
 }
-
 export function randomizeParticles(particle) {
 	particle.size = minMax(particleSizeRange[0], particleSizeRange[1]);
 	particle.color = particleColor;
@@ -121,7 +139,7 @@ function animate() {
 
 // run loop
 updateMaxDistance();
-effect.handleParticles(ctx);
+effect.handleParticles(ctx, false);
 animate();
 
 

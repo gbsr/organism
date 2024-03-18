@@ -10,11 +10,11 @@ export function GetDeltaTime() {
 	}
 	return deltaTime;
 }
-export function minMax(min, max) {
-	return Math.floor(Math.random() * (max - min + 1) + min);
-}
 export function lerp(start, end, weight) {
 	return start * (1 - weight) + end * weight;
+}
+export function minMax(min, max) {
+	return Math.floor(Math.random() * (max - min + 1) + min);
 }
 export function randomBetween(min, max) {
 	return Math.random() * (max - min) + min;

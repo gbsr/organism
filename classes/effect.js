@@ -95,10 +95,14 @@ export class Effect {
 		}
 	}
 
-	handleParticles(context) {
+	handleParticles(context, respawn) {
 		this.context = context;
+		if (respawn) {
+			this.particles = [];
+			this.createParticles();
+		}
+
 		this.connectParticles(context);
-		let leader = this.particles.find(particle => particle.isLeader);
 
 		this.particles.forEach(particle => {
 

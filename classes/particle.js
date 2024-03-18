@@ -7,7 +7,7 @@ import { maxVelocity, minVelocity, maxAcceleration, mutatedMaxVelocity, mutatedM
 
 let canvas = document.getElementById('canvas1');
 let context = canvas.getContext('2d');
-let debug = false;
+let debug = true;
 class Particle {
 	static debug = debug;
 	/**
@@ -150,14 +150,16 @@ class Particle {
 		this.color = this.randomParticleColor;
 		this.particleColor = 'red';
 		console.log('mutated!');
-		this.debug = false;
+		this.debug = true;
 		this.maxVelocity = mutatedMaxVelocity;
 		this.minVelocity = mutatedMinVelocity;
 		// Add a velocity boost
 		let angle = Math.random() * Math.PI * 2; // Random direction
 		// let speed = 20; // Change this to the speed you want
 		this.vx = Math.cos(angle);
-		this.vy = Math.sin(angle);;
+		this.vy = Math.sin(angle);
+		this.perceptionRadius = 100;
+		console.log('perceptionRadius: ' + this.perceptionRadius);
 	}
 
 

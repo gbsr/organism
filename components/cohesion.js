@@ -1,50 +1,37 @@
-import { perceptionRadius } from "../script.js";
+import { perceptionRadius, cohesionForce } from "../script.js";
 
 function cohesion(particle, particles) {
-	let totalParticles = 0;
-	let steering = { x: 0, y: 0 };
+	let centerOfMass = { x: 0, y: 0 };
+	let total = 0;
 
 	particles.forEach(other => {
-		// Distance between particle and actual particle
-		let dx = particle.x - other.x;
-		let dy = particle.y - other.y;
+		let dx = other.x - particle.x;
+		let dy = other.y - particle.y;
 		let d = Math.hypot(dx, dy);
-		// If particle is inside perception radius
-		if (d < perceptionRadius && other != particle) {
-			steering.x += other.x;
-			steering.y += other.y;
-			totalParticles++;
+
+		if (d < perceptionRadius && particle !== other) {
+			centerOfMass.x += other.x;
+			centerOfMass.y += other.y;
+			total++;
 		}
 	});
 
-	if (totalParticles > 0) {
-		// Average the steering vector
-		steering.x /= totalParticles;
-		steering.y /= totalParticles;
+	if (total > 0) {
+		centerOfMass.x /= total;
+		centerOfMass.y /= total;
 
-		// Subtract the current position to get the steering vector
-		steering.x -= particle.x;
-		steering.y -= particle.y;
-
-		// Set the magnitude of the steering vector to maxVelocity
+		let steering = { x: centerOfMass.x - particle.x, y: centerOfMass.y - particle.y };
 		let magnitude = Math.hypot(steering.x, steering.y);
-		if (magnitude > 0) {
-			steering.x = (steering.x / magnitude) * particle.maxVelocity;
-			steering.y = (steering.y / magnitude) * particle.maxVelocity;
-		}
+		steering.x /= magnitude;
+		steering.y /= magnitude;
 
-		// Subtract the current velocity to get the steering force
-		steering.x -= particle.vx;
-		steering.y -= particle.vy;
+		steering.x *= cohesionForce / 1000;
+		steering.y *= cohesionForce / 1000;
 
-		// Limit the steering force to maxAcceleration
-		magnitude = Math.hypot(steering.x, steering.y);
-		if (magnitude > particle.maxAcceleration) {
-			steering.x = (steering.x / magnitude) * particle.maxAcceleration;
-			steering.y = (steering.y / magnitude) * particle.maxAcceleration;
-		}
+		return steering;
 	}
-	return steering;
+
+	return { x: 0, y: 0 };
 }
 
 export default cohesion;
