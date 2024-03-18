@@ -1,10 +1,18 @@
 import { alignmentForce, perceptionRadius } from "../script.js";
 
+/**
+ * Aligns the velocity of a particle to other nearby particles within the perception radius.
+ *
+ * Calculates the average velocity of other particles within the perception radius.
+ * Normalizes the average velocity.
+ * Scales the normalized velocity by the alignmentForce.
+ * Returns the alignment adjustment for the particle's velocity.
+ */
 function align(particle, particles) {
 	let alignment = { x: 0, y: 0 };
 	let total = 0;
 
-	particles.forEach(other => {
+	particles.forEach((other) => {
 		let dx = other.x - particle.x;
 		let dy = other.y - particle.y;
 		let d = Math.hypot(dx, dy);

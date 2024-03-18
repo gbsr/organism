@@ -4,6 +4,16 @@ import align from './align.js';
 import cohesion from './cohesion.js';
 import { minMax, GetDeltaTime, lerp } from '../classes/helpers/helpers.js';
 
+/**
+ * Handles the steering behavior for a particle within a flock.
+ *
+ * Calculates separation, alignment and cohesion vectors to steer the particle.
+ * Also calculates an (extra) center of mass vector to keep the flock together.
+ *
+ * Limits the particle's velocity to the maxVelocity.
+ * Updates the particle's position based on its velocity.
+ */
+
 function handleSteeringBehaviour(particle, particles, context) {
 	let separationVector = { x: 0, y: 0 };
 	let alignmentVector = { x: 0, y: 0 };
@@ -12,7 +22,6 @@ function handleSteeringBehaviour(particle, particles, context) {
 	let mutatedParticle = null;
 	let localFlockmates = [];
 
-	// Step 1: Apply velocities to the entire particle system based on minVelocity and maxVelocity
 	// Calculate a new random velocity
 	let speed = Math.random() * (maxVelocity - minVelocity) + minVelocity;
 	let angle = Math.random() * 2 * Math.PI;
@@ -22,12 +31,6 @@ function handleSteeringBehaviour(particle, particles, context) {
 	// Get the time elapsed since the last frame, use that to interpolate the velocity
 	lerpVector(particle, newVx, newVy);
 
-	// step 2: apply steering behaviours, where every particle tried to avoid crashing in to another particle. 
-	// They can apply aggressive turns if needed.
-	// we use the separate, align, and cohesion from separate.js, cohesion.js and align.js to calculate 
-	//steering behaviours, and apply those forces to our collected min/max velocity + any potential aggressive 
-	// extra turn they need to do in order to avoid each other
-	// Step 2: Apply steering behaviours
 	for (let i = 0; i < particles.length; i++) {
 		let particle = particles[i];
 
@@ -49,11 +52,11 @@ function handleSteeringBehaviour(particle, particles, context) {
 		cohesionVector.x *= attractionForce;
 		cohesionVector.y *= attractionForce;
 
-		// // Apply the cohesion force to the particle's velocity
+		// Apply the cohesion force to the particle's velocity
 		particle.vx += cohesionVector.x;
 		particle.vy += cohesionVector.y;
 
-		// // Calculate the alignment force
+		// Calculate the alignment force
 		let alignmentVector = align(particle, particles);
 
 		// Scale the alignment force by the alignmentForce variable
@@ -64,24 +67,29 @@ function handleSteeringBehaviour(particle, particles, context) {
 		particle.vx += alignmentVector.x;
 		particle.vy += alignmentVector.y;
 
-
 		// Calculate the center of mass;
 		let centerOfMass = { x: 0, y: 0 };
 		let total = 0;
 
-		particles.forEach(particle => {
+		particles.forEach((particle) => {
 			centerOfMass.x += particle.x;
 			centerOfMass.y += particle.y;
 			total++;
 		});
 
+		/**
+		 * Calculates a steering force to move particles towards the
+		 * center of mass of all particles. Particles within a radius
+		 * of the center of mass are steered directly towards it, with
+		 * a force that scales based on distance.
+		 */
 		if (total > 0) {
 			centerOfMass.x /= total;
 			centerOfMass.y /= total;
 
 			let centerOfMassRadius = Math.sqrt(total); // Increase the radius as the center increases
 
-			particles.forEach(particle => {
+			particles.forEach((particle) => {
 				let dx = centerOfMass.x - particle.x;
 				let dy = centerOfMass.y - particle.y;
 				let d = Math.hypot(dx, dy);
@@ -110,18 +118,17 @@ function handleSteeringBehaviour(particle, particles, context) {
 			particle.vx *= maxVelocity;
 			particle.vy *= maxVelocity;
 		}
-
 	}
 
 	particle.x += particle.vx;
 	particle.y += particle.vy;
 
-	// step 3 : if a particle mutates, it will be added to the localFlockmates array, and we will apply a different
-	// steering behaviour to it.
+	// TODO: step 3 : if a particle mutates, it will be added to the localFlockmates array, and we will apply a different
+	// TODO:  steering behaviour to it.
 
-	// step 4: let the other non-mutated particles start to move towards the mutated particle, 
-	// if and only if they are inside it's perceptionRadius. They will still try to avoid each other (and the mutated particle,
-	// but will start to follow it and wants to match its speed and average trajectory.
+	// TODO: step 4: let the other non-mutated particles start to move towards the mutated particle, 
+	// TODO: if and only if they are inside it's perceptionRadius. They will still try to avoid each other (and the mutated particle,
+	// TODO: but will start to follow it and wants to match its speed and average trajectory.
 
 
 

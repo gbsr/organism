@@ -4,7 +4,18 @@ function cohesion(particle, particles) {
 	let centerOfMass = { x: 0, y: 0 };
 	let total = 0;
 
-	particles.forEach(other => {
+	/**
+	 * Calculates the center of mass for nearby particles and applies
+	 * a steering force towards that center of mass to the given particle.
+	 *
+	 * Iterates through all particles within perceptionRadius of the given particle.
+	 * Sums the x and y positions into centerOfMass.
+	 * Divides by total particles to get average center of mass.
+	 * Calculates a steering vector towards the center of mass.
+	 * Scales the steering vector by the attractionForce.
+	 * Returns the steering vector to apply as a force to the given particle.
+	 */
+	particles.forEach((other) => {
 		let dx = other.x - particle.x;
 		let dy = other.y - particle.y;
 		let d = Math.hypot(dx, dy);

@@ -82,11 +82,7 @@ class Particle {
 		if (Math.random() < 0.5) this.vy *= -1;
 	}
 
-
 	update(particles) {
-
-
-
 		if (this.isMutated) {
 			this.color = this.randomParticleColor;
 		}
@@ -111,6 +107,7 @@ class Particle {
 		}
 		context.fill();
 
+		// draw debugCircle for perceptionRadius
 		if (this.debug) {
 			context.save();
 			context.beginPath();
@@ -147,6 +144,7 @@ class Particle {
 		this.y = Math.max(Math.min(this.y, this.effect.height - this.size - buffer), this.size + buffer);
 	}
 
+	// randomly mutate a particle for further manipulation later on
 	mutate(context) {
 		this.isMutated = true;
 		this.color = this.randomParticleColor;
@@ -156,17 +154,13 @@ class Particle {
 		this.maxVelocity = mutatedMaxVelocity;
 		this.minVelocity = mutatedMinVelocity;
 		// Add a velocity boost
-		let angle = Math.random() * Math.PI * 2; // Random direction
 		// let speed = 20; // Change this to the speed you want
+		let angle = Math.random() * Math.PI * 2; // Random direction
 		this.vx = Math.cos(angle);
 		this.vy = Math.sin(angle);
 		this.perceptionRadius = 100;
 		console.log('perceptionRadius: ' + this.perceptionRadius);
 	}
-
-
-
-
 }
 
 export default Particle;

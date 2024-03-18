@@ -3,11 +3,16 @@ import { separationForce, perceptionRadius, minDistance } from "../script.js";
 function separate(particle, particles) {
 	let avoidance = { x: 0, y: 0 };
 	let total = 0;
-	let forceMultiplier = 100; // Adjust this value as needed
-	let maxForce = 90; // Limit the force
+	let forceMultiplier = 100;
+	let maxForce = 90;
 
 
-	particles.forEach(other => {
+	/**
+	 * Calculates separation force to avoid crowding for a particle.
+	 * Iterates through all other particles, calculates vector away from each,
+	 * weights by distance. Accumulates weighted average vector.
+	 */
+	particles.forEach((other) => {
 		let dx = particle.x - other.x;
 		let dy = particle.y - other.y;
 		let d = Math.hypot(dx, dy);
