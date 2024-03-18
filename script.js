@@ -89,7 +89,7 @@ function setupSliderElements() {
 		{ element: separationSlider, start: [0, 0], range: { 'min': 0.1, '1%': 0.1, '50%': 2.5, 'max': 5 }, variable: 'separationForce' },
 		{ element: alignmentSlider, start: [0, 0], range: { 'min': 0.1, '1%': 0.1, '50%': 2.5, 'max': 5 }, variable: 'alignmentForce' },
 		{ element: minDistanceSlider, start: [0, 0], range: { 'min': 1, '0%': 0, '50%': 50, 'max': 100 }, variable: 'minDistance' },
-		{ element: particleSizeRangeSlider, start: [0, 0], range: { 'min': 1, '1%': 0.1, '50%': 13, 'max': 25 }, variable: 'particleSize' },
+		// { element: particleSizeRangeSlider, start: [0, 0], range: { 'min': 1, '1%': 0.1, '50%': 13, 'max': 25 }, variable: 'particleSize' },
 		{ element: numberOfParticlesSlider, start: [0, 0], range: { 'min': 1, '1%': 1, '50%': 100, 'max': 200 }, variable: 'numberOfParticles' },
 	];
 
@@ -118,6 +118,8 @@ function setupSliderElements() {
 					alignmentForce = minMax(minNumber, maxNumber);
 				} else if (slider.variable === 'minDistance') {
 					minDistance = minMax(minNumber, maxNumber);
+					// } else if (slider.variable === 'particleSize') {
+					// 	particleSize = minMax(minNumber, maxNumber);
 				}
 				effect.updateParticles(slider.variable, minNumber, maxNumber);
 			}
