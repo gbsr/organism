@@ -11,20 +11,21 @@ const mouseAttractSpeed = minMax(0.2, 0.4);
 
 canvas.width = card.clientWidth;
 canvas.height = card.clientHeight;
-// ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-ctx.strokeStyle = 'pink';
+ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+// ctx.strokeStyle = 'pink';
 ctx.lineWidth = minMax(1, 4);
 
 console.log(ctx);
 
-export let maxDistance = minMax(1, 15);
-let numberOfParticles = minMax(40, 80);
+export let maxDistance = minMax(1, 95);
+export let numberOfParticles = minMax(40, 80);
 export let perceptionRadius = minMax(40, 80);
 
 // swarming behaviour
-export let cohesionForce = 0;
+export let attractionForce = 0;
 export let separationForce = 0.8;
 export let alignmentForce = 0;
+export let minDistance = 0;
 
 export let maxVelocity = 1.4;
 export let minVelocity = 0.9;
@@ -35,17 +36,17 @@ export let mutatedMinVelocity = 0.005;
 
 
 let particleRepelRadius = [30, 90];
-let particleSizeRange = [5, 10];
-let particleColor = 'pink';
+let particleSizeRange = [3, 7];
+export let particleColor = 'pink';
 let targetDistance = maxDistance;
 let isRepellingMouse = true;
 let isAttractedToMouse = false;
 let hasBeenTweaked = false;
 let isLeader = false;
 
-let alpha = 0.3;
-let blurAmount = 10;
-let blurColor = 'green';
+let alpha = 0.1;
+let blurAmount = 30;
+let blurColor = 'lightblue';
 
 const mouseRadiusRange = [10, 80];
 const mouseRepelRange = [10, 20];
@@ -54,8 +55,10 @@ const mouseRepelRange = [10, 20];
 let attractionSlider = document.getElementById('attractionForce');
 let separationSlider = document.getElementById('separationForce');
 let alignmentSlider = document.getElementById('alignmentForce');
+let minDistanceSlider = document.getElementById('minDistance');
+let particleSizeRangeSlider = document.getElementById('particleSizeRange');
+let numberOfParticlesSlider = document.getElementById('particleNumberRange');
 
-setupSliderElements();
 
 const effect = new Effect(
 	canvas,
@@ -72,6 +75,8 @@ const effect = new Effect(
 	perceptionRadius,
 );
 
+setupSliderElements();
+
 // Assuming 'particles' is an array that holds your particles
 // and 'spawnParticle' is a function that spawns a new particle
 
@@ -80,9 +85,12 @@ document.querySelector('.reloadSystem').addEventListener('click', function () {
 });
 function setupSliderElements() {
 	const sliders = [
-		{ element: attractionSlider, start: [0.01, 0.5], range: { 'min': 0, '10%': 0.1, '50%': 0.5, 'max': 10 }, variable: 'attractionForce' },
-		{ element: separationSlider, start: [0.01, 0.5], range: { 'min': 0, '10%': 0.1, '50%': 0.5, 'max': 5 }, variable: 'separationForce' },
-		{ element: alignmentSlider, start: [0.01, 0.5], range: { 'min': 0, '10%': 0.1, '50%': 0.5, 'max': 5 }, variable: 'alignmentForce' },
+		{ element: attractionSlider, start: [0, 0], range: { 'min': 0.1, '1%': 0.1, '50%': 2.5, 'max': 10 }, variable: 'attractionForce' },
+		{ element: separationSlider, start: [0, 0], range: { 'min': 0.1, '1%': 0.1, '50%': 2.5, 'max': 5 }, variable: 'separationForce' },
+		{ element: alignmentSlider, start: [0, 0], range: { 'min': 0.1, '1%': 0.1, '50%': 2.5, 'max': 5 }, variable: 'alignmentForce' },
+		{ element: minDistanceSlider, start: [0, 0], range: { 'min': 1, '0%': 0, '50%': 50, 'max': 100 }, variable: 'minDistance' },
+		{ element: particleSizeRangeSlider, start: [0, 0], range: { 'min': 1, '1%': 0.1, '50%': 13, 'max': 25 }, variable: 'particleSize' },
+		{ element: numberOfParticlesSlider, start: [0, 0], range: { 'min': 1, '1%': 1, '50%': 100, 'max': 200 }, variable: 'numberOfParticles' },
 	];
 
 	sliders.forEach(slider => {
@@ -96,12 +104,22 @@ function setupSliderElements() {
 		// Listen for the update event
 		slider.element.noUiSlider.on('update', function (values, handle) {
 			// Update the variable with the new value
-			if (slider.variable === 'attractionForce') {
-				cohesionForce = Number(values[handle]);
-			} else if (slider.variable === 'separationForce') {
-				separationForce = Number(values[handle]);
-			} else if (slider.variable === 'alignmentForce') {
-				alignmentForce = Number(values[handle]);
+			let minNumber = Number(values[0]);
+			let maxNumber = Number(values[1]);
+
+			if (slider.variable === 'numberOfParticles') {
+				effect.handleParticlePopulation(minNumber, maxNumber);
+			} else {
+				if (slider.variable === 'attractionForce') {
+					attractionForce = minMax(minNumber, maxNumber);
+				} else if (slider.variable === 'separationForce') {
+					separationForce = minMax(minNumber, maxNumber);
+				} else if (slider.variable === 'alignmentForce') {
+					alignmentForce = minMax(minNumber, maxNumber);
+				} else if (slider.variable === 'minDistance') {
+					minDistance = minMax(minNumber, maxNumber);
+				}
+				effect.updateParticles(slider.variable, minNumber, maxNumber);
 			}
 		});
 	});
@@ -117,7 +135,7 @@ function updateMaxDistance() {
 	// console.log('updated max distance: ' + targetDistance);
 }
 function animate() {
-	let fillColor = `rgba(77, 77,77, ${alpha})`;
+	let fillColor = `rgba(0, 0,255, ${alpha})`;
 
 	ctx.shadowBlur = `${blurAmount}`; // Adjust the level of blur
 	ctx.shadowColor = `${blurColor}`; // The color of the blur

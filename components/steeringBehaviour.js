@@ -1,4 +1,4 @@
-import { maxVelocity, minVelocity, cohesionForce, separationForce, alignmentForce, perceptionRadius } from '../script.js';
+import { maxVelocity, minVelocity, attractionForce, separationForce, alignmentForce, perceptionRadius } from '../script.js';
 import separate from './separate.js';
 import align from './align.js';
 import cohesion from './cohesion.js';
@@ -45,15 +45,15 @@ function handleSteeringBehaviour(particle, particles, context) {
 		// Calculate the cohesion force
 		let cohesionVector = cohesion(particle, particles);
 
-		// Scale the cohesion force by the cohesionForce variable
-		cohesionVector.x *= cohesionForce;
-		cohesionVector.y *= cohesionForce;
+		// Scale the cohesion force by the attractionForce variable
+		cohesionVector.x *= attractionForce;
+		cohesionVector.y *= attractionForce;
 
-		// Apply the cohesion force to the particle's velocity
+		// // Apply the cohesion force to the particle's velocity
 		particle.vx += cohesionVector.x;
 		particle.vy += cohesionVector.y;
 
-		// Calculate the alignment force
+		// // Calculate the alignment force
 		let alignmentVector = align(particle, particles);
 
 		// Scale the alignment force by the alignmentForce variable
@@ -64,7 +64,57 @@ function handleSteeringBehaviour(particle, particles, context) {
 		particle.vx += alignmentVector.x;
 		particle.vy += alignmentVector.y;
 
+
+		// Calculate the center of mass;
+		let centerOfMass = { x: 0, y: 0 };
+		let total = 0;
+
+		particles.forEach(particle => {
+			centerOfMass.x += particle.x;
+			centerOfMass.y += particle.y;
+			total++;
+		});
+
+		if (total > 0) {
+			centerOfMass.x /= total;
+			centerOfMass.y /= total;
+
+			let centerOfMassRadius = Math.sqrt(total); // Increase the radius as the center increases
+
+			particles.forEach(particle => {
+				let dx = centerOfMass.x - particle.x;
+				let dy = centerOfMass.y - particle.y;
+				let d = Math.hypot(dx, dy);
+
+				if (d < centerOfMassRadius) {
+					let steering = { x: dx, y: dy };
+					let magnitude = Math.hypot(steering.x, steering.y);
+					steering.x /= magnitude;
+					steering.y /= magnitude;
+
+					let force = 0.05; // Adjust this value as needed
+					steering.x *= force;
+					steering.y *= force;
+
+					particle.vx += steering.x;
+					particle.vy += steering.y;
+				}
+			});
+		}
+
+		// Limit the maximum velocity
+		let velocityMagnitude = Math.hypot(particle.vx, particle.vy);
+		if (velocityMagnitude > maxVelocity) {
+			particle.vx /= velocityMagnitude;
+			particle.vy /= velocityMagnitude;
+			particle.vx *= maxVelocity;
+			particle.vy *= maxVelocity;
+		}
+
 	}
+
+	particle.x += particle.vx;
+	particle.y += particle.vy;
 
 	// step 3 : if a particle mutates, it will be added to the localFlockmates array, and we will apply a different
 	// steering behaviour to it.

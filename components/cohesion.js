@@ -1,4 +1,4 @@
-import { perceptionRadius, cohesionForce } from "../script.js";
+import { perceptionRadius, attractionForce } from "../script.js";
 
 function cohesion(particle, particles) {
 	let centerOfMass = { x: 0, y: 0 };
@@ -25,8 +25,8 @@ function cohesion(particle, particles) {
 		steering.x /= magnitude;
 		steering.y /= magnitude;
 
-		steering.x *= cohesionForce / 1000;
-		steering.y *= cohesionForce / 1000;
+		steering.x *= attractionForce / 1000;
+		steering.y *= attractionForce / 1000;
 
 		return steering;
 	}

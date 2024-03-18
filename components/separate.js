@@ -1,8 +1,11 @@
-import { separationForce, perceptionRadius } from "../script.js";
+import { separationForce, perceptionRadius, minDistance } from "../script.js";
 
 function separate(particle, particles) {
 	let avoidance = { x: 0, y: 0 };
 	let total = 0;
+	let forceMultiplier = 100; // Adjust this value as needed
+	let maxForce = 90; // Limit the force
+
 
 	particles.forEach(other => {
 		let dx = particle.x - other.x;
@@ -15,12 +18,23 @@ function separate(particle, particles) {
 			diff.x /= magnitude;
 			diff.y /= magnitude;
 
-			diff.x *= separationForce / 1000;
-			diff.y *= separationForce / 1000;
+			// If particles are too close, separate them immediately
+			if (d < minDistance) {
+				let force = (d / minDistance - 1) * forceMultiplier;
+				force = Math.max(force, maxForce); // Limit the force
+				diff.x *= force;
+				diff.y *= force;
+			} else {
+				// Increase the force as particles get closer
+				let force = (separationForce / (d * d)) * forceMultiplier;
+				diff.x *= force;
+				diff.y *= force;
 
-			avoidance.x += diff.x;
-			avoidance.y += diff.y;
-			total++;
+				avoidance.x += diff.x / 100;
+				avoidance.y += diff.y / 100;
+				total++;
+				// console.log('pushpushpush!');
+			}
 		}
 	});
 

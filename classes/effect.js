@@ -131,6 +131,19 @@ export class Effect {
 		}, interval);
 	}
 
+	updateParticles(variable, minNumber, maxNumber) {
+		// Iterate over each particle
+		for (let i = 0; i < this.particles.length; i++) {
+			let particle = this.particles[i];
+
+			// Generate a new number in the range of minNumber and maxNumber
+			let newValue = minMax(minNumber, maxNumber);
+
+			// Update the particle's variable with the new value
+			particle[variable] = newValue;
+		}
+	}
+
 	connectParticles(context) {
 		if (!context) {
 			return;
@@ -158,4 +171,55 @@ export class Effect {
 			}
 		}
 	}
+
+	handleParticlePopulation(minNumber, maxNumber) {
+		console.log('Handling population');
+
+		// Calculate the desired number of particles
+		let desiredNumberOfParticles = Math.floor(Math.random() * (maxNumber - minNumber + 1) + minNumber);
+
+		// Calculate the difference between the current and desired number of particles
+		let difference = desiredNumberOfParticles - this.particles.length;
+
+		// Maximum number of particles to add or remove per frame
+		let maxChangePerFrame = 10;
+
+		// If there are too many particles, remove some
+		if (difference < 0) {
+			let numToRemove = Math.min(Math.abs(difference), maxChangePerFrame);
+			for (let i = 0; i < numToRemove; i++) {
+				this.particles.pop();
+			}
+		}
+
+		// If there are too few particles, add some
+		else if (difference > 0) {
+			let numToAdd = Math.min(difference, maxChangePerFrame);
+			for (let i = 0; i < numToAdd; i++) {
+				this.particles.push(new Particle(
+					false,
+					false,
+					this.id,
+					this.leaderSpeedMultiplier,
+					this.perceptionRadius,
+					this,
+					this.particleRepelRadius,
+					this.size,
+					this.particleColor,
+					this.RandomParticleColor,
+					this.mouseRadius,
+					this.repel,
+					this.mouseRepelForce,
+					this.attract,
+					this.separationForce,
+				));
+			}
+		}
+
+		// Update each particle
+		for (let i = 0; i < this.particles.length; i++) {
+			this.particles[i].update(this.particles);
+		}
+	}
 }
+

@@ -1,13 +1,13 @@
 // import AttractMouse from '../components/attractMouse.js';
 import handleSteeringBehaviour from '../components/steeringBehaviour.js';
 import { separationForce } from '../script.js';
-import { maxVelocity, minVelocity, maxAcceleration, mutatedMaxVelocity, mutatedMinVelocity } from '../script.js';
+import { maxVelocity, minVelocity, maxAcceleration, mutatedMaxVelocity, mutatedMinVelocity, numberOfParticles, particleColor } from '../script.js';
 
 // TODO: slider 1 - 1000;
 
 let canvas = document.getElementById('canvas1');
 let context = canvas.getContext('2d');
-let debug = true;
+let debug = false;
 class Particle {
 	static debug = debug;
 	/**
@@ -85,6 +85,8 @@ class Particle {
 
 	update(particles) {
 
+
+
 		if (this.isMutated) {
 			this.color = this.randomParticleColor;
 		}
@@ -150,7 +152,7 @@ class Particle {
 		this.color = this.randomParticleColor;
 		this.particleColor = 'red';
 		console.log('mutated!');
-		this.debug = true;
+		this.debug = false;
 		this.maxVelocity = mutatedMaxVelocity;
 		this.minVelocity = mutatedMinVelocity;
 		// Add a velocity boost
