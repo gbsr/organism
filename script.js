@@ -1,5 +1,5 @@
 
-import { Effect } from '../classes/effect.js';
+import { Effect } from './classes/effect.js';
 import { minMax } from './classes/helpers/helpers.js';
 
 const canvas = document.getElementById('canvas1');
