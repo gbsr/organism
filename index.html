@@ -4,14 +4,17 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<link rel="stylesheet" href="style.css" />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap"
+			rel="stylesheet" />
 		<title>Constellations Particles</title>
 	</head>
 	<body>
-		<div class="card" id="card">
-			<label for="repelForce"> Attract / Push </label>
-			<input type="range" id="repelForce" name="repelForce" min="1" max="100" />
-			<span id="repelForceValue"></span>
-			<canvas id="canvas1"> </canvas>
+		<div class="container">
+			<h1 class="title">ORGANISMS</h1>
+			<div class="canvas-container">
+				<canvas id="canvas1"></canvas>
+			</div>
 		</div>
 		<script type="module" src="script.js" defer></script>
 	</body>

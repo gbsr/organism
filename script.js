@@ -1,12 +1,9 @@
 import { minMax, lerp } from './helpers.js';
 
 const canvas = document.getElementById('canvas1');
-const card = document.getElementById('card');
 const ctx = canvas.getContext('2d');
-canvas.width = card.clientWidth;
-canvas.height = card.clientHeight;
-
-console.log(ctx);
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
 ctx.strokeStyle = 'hotpink';
 ctx.lineWidth = 0.5;
@@ -19,41 +16,49 @@ ctx.lineWidth = 0.5;
 // gradient.addColorStop(1, 'black');
 // ctx.fillStyle = gradient;
 
-const numberOfParticles = minMax(800, 800);
+const numberOfParticles = minMax(500, 500);
 
 class Particle {
     constructor(effect) {
         this.effect = effect;
-        this.size = minMax(0.25, 8);
-        this.strokeWidth = minMax(0.25, 10);
-        this.fillStyle = "white";
+        this.size = minMax(0.5, 10);
+        this.strokeWidth = minMax(0.005, 0.25);
+        // this.fillStyle = "black";
 
         // Adjust initial position to ensure particles start away from walls
         const margin = this.size * 5;
         this.x = margin + Math.random() * (this.effect.width - margin * 2);
         this.y = margin + Math.random() * (this.effect.height - margin * 2);
 
-        this.vx = minMax(0, 0);
-        this.vy = minMax(0, 0);
+        this.vx = minMax(-0.5, 0.5);
+        this.vy = minMax(-0.5, 0.5);
 
-        this.maxSpeed = 0.5; // Adjust this value to set the maximum speed
+        this.maxSpeed = 0.5;
+        this.centerAttractionStrength = 0.05; // Adjust this value to change the strength of attraction to the center
     }
 
     draw(context) {
         context.beginPath();
         context.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
+        context.fillStyle = this.fillStyle;
         context.fill();
-
-
-
     }
 
     update() {
+        // Center attraction
+        const centerX = this.effect.width / 2;
+        const centerY = this.effect.height / 2;
+        const dx = centerX - this.x;
+        const dy = centerY - this.y;
+        const distanceToCenter = Math.hypot(dx, dy);
+
+        this.vx += (dx / distanceToCenter) * this.centerAttractionStrength;
+        this.vy += (dy / distanceToCenter) * this.centerAttractionStrength;
+
         // Wall avoidance
         const margin = this.size * 2.5;
         const repelStrength = 0.5;
 
-        // Repel from walls
         if (this.x < margin) {
             this.vx += repelStrength;
         } else if (this.x > this.effect.width - margin) {
@@ -132,13 +137,13 @@ class Particle {
             const dx = this.x - this.effect.mouse.x;
             const dy = this.y - this.effect.mouse.y;
             const distance = Math.hypot(dx, dy);
-            const mouseRadius = 80;
+            const mouseRadius = 320;
 
             if (distance < mouseRadius) {
                 const angle = Math.atan2(dy, dx);
                 const force = (mouseRadius - distance) / mouseRadius;
-                this.vx += Math.cos(angle) * force * 1.2;
-                this.vy += Math.sin(angle) * force * 1.2;
+                this.vx += Math.cos(angle) * force * 3.2;
+                this.vy += Math.sin(angle) * force * 3.2;
             }
         }
     }
@@ -232,6 +237,14 @@ class Effect {
 
     }
 }
+
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    effect.width = canvas.width;
+    effect.height = canvas.height;
+    effect.createParticles(); // Re-create particles for the new size
+});
 
 let maxDistance = minMax(2, 20);
 let targetDistance = maxDistance;
