@@ -8,7 +8,7 @@ canvas.height = card.clientHeight;
 
 console.log(ctx);
 
-ctx.strokeStyle = 'white';
+ctx.strokeStyle = 'hotpink';
 ctx.lineWidth = 0.5;
 
 // const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -19,21 +19,22 @@ ctx.lineWidth = 0.5;
 // gradient.addColorStop(1, 'black');
 // ctx.fillStyle = gradient;
 
-const numberOfParticles = minMax(50, 250);
-let particleRepelRadius = 20;
+const numberOfParticles = minMax(800, 800);
 
 class Particle {
     constructor(effect) {
         this.effect = effect;
-        this.size = minMax(2, 16);
+        this.size = minMax(0.25, 8);
+        this.strokeWidth = minMax(0.25, 10);
+        this.fillStyle = "white";
 
         // Adjust initial position to ensure particles start away from walls
-        const margin = this.size * 3;
+        const margin = this.size * 5;
         this.x = margin + Math.random() * (this.effect.width - margin * 2);
         this.y = margin + Math.random() * (this.effect.height - margin * 2);
 
         this.vx = minMax(0, 0);
-        this.vy = minMax(0, 1.5);
+        this.vy = minMax(0, 0);
 
         this.maxSpeed = 0.5; // Adjust this value to set the maximum speed
     }
@@ -42,6 +43,9 @@ class Particle {
         context.beginPath();
         context.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
         context.fill();
+
+
+
     }
 
     update() {
@@ -133,8 +137,8 @@ class Particle {
             if (distance < mouseRadius) {
                 const angle = Math.atan2(dy, dx);
                 const force = (mouseRadius - distance) / mouseRadius;
-                this.vx += Math.cos(angle) * force * 0.2;
-                this.vy += Math.sin(angle) * force * 0.2;
+                this.vx += Math.cos(angle) * force * 1.2;
+                this.vy += Math.sin(angle) * force * 1.2;
             }
         }
     }
@@ -152,13 +156,7 @@ class Particle {
 
 
 
-const repelForceSlider = document.getElementById('repelForce');
-const repelForceValue = document.getElementById('repelForceValue');
 
-repelForceSlider.addEventListener('input', function () {
-    particleRepelRadius = this.value;
-    repelForceValue.textContent = this.value;
-});
 
 class Effect {
 
@@ -235,10 +233,10 @@ class Effect {
     }
 }
 
-let maxDistance = minMax(20, 50);
+let maxDistance = minMax(2, 20);
 let targetDistance = maxDistance;
 function updateMaxDistance() {
-    targetDistance = minMax(20, 50);
+    targetDistance = minMax(5, 50);
 
     setTimeout(updateMaxDistance, 5000);
 }
