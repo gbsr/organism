@@ -5,59 +5,73 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+// ctx.strokeStyle = 'rgba(153, 3, 145, 0.95)';
 ctx.strokeStyle = 'hotpink';
-ctx.lineWidth = 0.5;
+ctx.lineWidth = 0.015;
 
-// const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-// gradient.addColorStop(0, 'white');
-// gradient.addColorStop(0.05, 'lightblue');
-// gradient.addColorStop(0.5, 'blue');
-// gradient.addColorStop(0.85, 'darkblue');
-// gradient.addColorStop(1, 'black');
-// ctx.fillStyle = gradient;
-
-const numberOfParticles = minMax(500, 500);
+const numberOfParticles = minMax(900, 900);
 
 class Particle {
     constructor(effect) {
         this.effect = effect;
-        this.size = minMax(0.5, 10);
-        this.strokeWidth = minMax(0.005, 0.25);
-        // this.fillStyle = "black";
+        this.baseSize = minMax(2, 16);
+        this.size = this.baseSize;
+        this.strokeWidth = minMax(0.4, 0.8);
+        this.reset();
+    }
 
-        // Adjust initial position to ensure particles start away from walls
-        const margin = this.size * 5;
+    reset() {
+        const margin = this.size * 2;
         this.x = margin + Math.random() * (this.effect.width - margin * 2);
         this.y = margin + Math.random() * (this.effect.height - margin * 2);
-
-        this.vx = minMax(-0.5, 0.5);
-        this.vy = minMax(-0.5, 0.5);
-
-        this.maxSpeed = 0.5;
-        this.centerAttractionStrength = 0.05; // Adjust this value to change the strength of attraction to the center
+        this.vx = minMax(-1, 0.5);
+        this.vy = minMax(-1, 0.5);
+        this.maxSpeed = 3;
+        this.centerAttractionStrength = 0.00015;
+        this.isAbsorbed = false;
+        this.organismId = null;
     }
 
     draw(context) {
         context.beginPath();
         context.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
-        context.fillStyle = this.fillStyle;
+        context.fillStyle = 'rgba(2, 2, 2, 0.12)';
+        // context.fillStyle = 'rgba(2, 1, 1, 0.25)';
+        // context.fillStyle = 'rgba(2, 1, 1, 0.25)';
+        // context.fillStyle = 'black';
         context.fill();
     }
 
-    update() {
-        // Center attraction
-        const centerX = this.effect.width / 2;
-        const centerY = this.effect.height / 2;
-        const dx = centerX - this.x;
-        const dy = centerY - this.y;
+    update(isPulsing, centerOfMass) {
+        if (isPulsing) {
+            this.repulse(centerOfMass);
+        } else {
+            this.applyForces(centerOfMass);
+        }
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        this.limitSpeed();
+
+        this.x = Math.max(Math.min(this.x, this.effect.width - this.size), this.size);
+        this.y = Math.max(Math.min(this.y, this.effect.height - this.size), this.size);
+
+        if (!isPulsing && this.centerAttractionStrength < 0.05) {
+            this.centerAttractionStrength += 0.0001;
+        }
+    }
+
+    applyForces(centerOfMass) {
+        const dx = centerOfMass.x - this.x;
+        const dy = centerOfMass.y - this.y;
         const distanceToCenter = Math.hypot(dx, dy);
 
         this.vx += (dx / distanceToCenter) * this.centerAttractionStrength;
         this.vy += (dy / distanceToCenter) * this.centerAttractionStrength;
 
-        // Wall avoidance
-        const margin = this.size * 2.5;
-        const repelStrength = 0.5;
+        const margin = this.size * 0.5;
+        const repelStrength = 80;
 
         if (this.x < margin) {
             this.vx += repelStrength;
@@ -70,22 +84,8 @@ class Particle {
             this.vy -= repelStrength;
         }
 
-        // Boids-like behavior
         this.applyBoidsBehavior();
-
-        // Mouse interaction
         this.handleMouseInteraction();
-
-        // Apply velocity
-        this.x += this.vx;
-        this.y += this.vy;
-
-        // Limit speed
-        this.limitSpeed();
-
-        // Ensure particles stay within bounds
-        this.x = Math.max(Math.min(this.x, this.effect.width - this.size), this.size);
-        this.y = Math.max(Math.min(this.y, this.effect.height - this.size), this.size);
     }
 
     applyBoidsBehavior() {
@@ -95,27 +95,22 @@ class Particle {
         let neighborCount = 0;
 
         for (let other of this.effect.particles) {
-            if (other === this) continue;
+            if (other === this || other.organismId !== this.organismId) continue;
 
             const dx = this.x - other.x;
             const dy = this.y - other.y;
             const distance = Math.hypot(dx, dy);
 
-            if (distance < this.size * 8) {
-                // Separation
+            if (distance < this.size * 4) {
                 separationForce.x += dx / distance;
                 separationForce.y += dy / distance;
             }
 
-            if (distance < this.size * 50) {
-                // Cohesion
+            if (distance < this.size * 40) {
                 cohesionForce.x += other.x;
                 cohesionForce.y += other.y;
-
-                // Alignment
                 alignmentForce.x += other.vx;
                 alignmentForce.y += other.vy;
-
                 neighborCount++;
             }
         }
@@ -127,9 +122,8 @@ class Particle {
             alignmentForce.y /= neighborCount;
         }
 
-        // Apply forces
-        this.vx += (separationForce.x * 0.15 + cohesionForce.x * 0.11 + alignmentForce.x * 0.11);
-        this.vy += (separationForce.y * 0.15 + cohesionForce.y * 0.11 + alignmentForce.y * 0.11);
+        this.vx += (separationForce.x * 0.6 + cohesionForce.x * 0.4 + alignmentForce.x * 0.4);
+        this.vy += (separationForce.y * 0.6 + cohesionForce.y * 0.4 + alignmentForce.y * 0.4);
     }
 
     handleMouseInteraction() {
@@ -142,10 +136,25 @@ class Particle {
             if (distance < mouseRadius) {
                 const angle = Math.atan2(dy, dx);
                 const force = (mouseRadius - distance) / mouseRadius;
-                this.vx += Math.cos(angle) * force * 3.2;
-                this.vy += Math.sin(angle) * force * 3.2;
+                this.vx += Math.cos(angle) * force * 5.2;
+                this.vy += Math.sin(angle) * force * 5.2;
             }
         }
+    }
+
+    repulse(centerOfMass) {
+        const repulsionStrength = minMax(1, 2, this.effect.repulsionStrength);
+        const repulsionRadius = minMax(400, 1600, this.effect.repulsionRadius);
+        const dx = this.x - centerOfMass.x;
+        const dy = this.y - centerOfMass.y;
+        const distanceToCenter = Math.hypot(dx, dy);
+        if (distanceToCenter < repulsionRadius) {
+            const angle = Math.atan2(dy, dx);
+            const force = repulsionStrength * (1 - distanceToCenter / repulsionRadius);
+            this.vx += Math.cos(angle) * force;
+            this.vy += Math.sin(angle) * force;
+        }
+        this.centerAttractionStrength = 0;
     }
 
     limitSpeed() {
@@ -158,39 +167,41 @@ class Particle {
     }
 }
 
-
-
-
-
-
 class Effect {
-
-
-
     constructor(canvas) {
         this.canvas = canvas;
         this.width = this.canvas.width;
         this.height = this.canvas.height;
         this.particles = [];
         this.numberOfParticles = numberOfParticles;
+        this.repulsionStrength = 4;
+        this.repulsionRadius = 800;
         this.createParticles();
+        this.absorptionThreshold = 0.95;
+        this.pulseDuration = 2000;
+        this.pulseInterval = 500;
+        this.lastPulseTime = 0;
+        this.minTimeBetweenPulses = 10000;
+        this.isPulsing = false;
+        this.organisms = [];
+        this.organismRadius = 200;
 
         this.mouse = {
             x: 0,
             y: 0,
             size: 50
         };
+
         canvas.addEventListener('mousemove', (event) => {
             const rect = canvas.getBoundingClientRect();
             this.mouse.x = event.clientX - rect.left;
             this.mouse.y = event.clientY - rect.top;
         });
 
-        canvas.addEventListener('mouseleave', (event) => {
+        canvas.addEventListener('mouseleave', () => {
             this.mouse.x = undefined;
             this.mouse.y = undefined;
-        }
-        );
+        });
     }
 
     createParticles() {
@@ -199,15 +210,92 @@ class Effect {
         }
     }
 
-    handleParticles(context) {
-        this.connectParticles(context);
-        this.particles.forEach(particle => {
-            particle.draw(context);
-            particle.update();
-        });
+    identifyOrganisms() {
+        this.organisms = [];
+        const unclustered = new Set(this.particles);
+
+        while (unclustered.size > 0) {
+            const seed = unclustered.values().next().value;
+            const cluster = this.growCluster(seed, unclustered);
+            if (cluster.size > 5) {
+                const organismData = this.calculateOrganismData(cluster);
+                this.organisms.push(organismData);
+                for (const particle of cluster) {
+                    particle.organismId = this.organisms.length - 1;
+                }
+            }
+        }
     }
 
+    growCluster(seed, unclustered) {
+        const cluster = new Set([seed]);
+        const queue = [seed];
+        unclustered.delete(seed);
 
+        while (queue.length > 0) {
+            const particle = queue.shift();
+            for (const other of unclustered) {
+                if (this.distance(particle, other) <= this.organismRadius) {
+                    cluster.add(other);
+                    queue.push(other);
+                    unclustered.delete(other);
+                }
+            }
+        }
+
+        return cluster;
+    }
+
+    distance(p1, p2) {
+        return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+    }
+
+    calculateOrganismData(cluster) {
+        let totalX = 0, totalY = 0, totalMass = 0;
+        let absorbedCount = 0;
+
+        for (const particle of cluster) {
+            totalX += particle.x * particle.size;
+            totalY += particle.y * particle.size;
+            totalMass += particle.size;
+            if (particle.isAbsorbed) absorbedCount++;
+        }
+
+        return {
+            centerOfMass: {
+                x: totalX / totalMass,
+                y: totalY / totalMass
+            },
+            particles: Array.from(cluster),
+            absorbedRatio: absorbedCount / cluster.size,
+            lastPulseTime: 0,
+            isPulsing: false
+        };
+    }
+
+    handleParticles(context) {
+        this.identifyOrganisms();
+
+        this.organisms.forEach((organism, index) => {
+            const currentTime = Date.now();
+            const timeSinceLastPulse = currentTime - organism.lastPulseTime;
+
+            if (organism.absorbedRatio >= this.absorptionThreshold && timeSinceLastPulse > this.minTimeBetweenPulses) {
+                this.triggerPulse(organism, currentTime);
+            }
+
+            organism.particles.forEach(particle => {
+                particle.draw(context);
+                particle.update(organism.isPulsing, organism.centerOfMass);
+            });
+
+            if (organism.isPulsing && currentTime - organism.lastPulseTime > this.pulseDuration) {
+                organism.isPulsing = false;
+            }
+        });
+
+        this.connectParticles(context);
+    }
 
     connectParticles(context) {
         for (let a = 0; a < this.particles.length; a++) {
@@ -219,7 +307,6 @@ class Effect {
                 if (distance < maxDistance) {
                     const opacity = 1 - (distance / maxDistance);
                     context.save();
-
                     const strokeWidth = 2 - (distance / maxDistance);
                     context.globalAlpha = opacity;
                     context.beginPath();
@@ -229,12 +316,31 @@ class Effect {
                     context.lineWidth = strokeWidth;
                     context.restore();
                 }
-
-
-
             }
         }
+    }
 
+    triggerPulse(organism, currentTime) {
+        organism.isPulsing = true;
+        organism.lastPulseTime = currentTime;
+        const maxDistance = Math.max(this.width, this.height) / 2;
+
+        organism.particles.forEach(particle => {
+            const dx = particle.x - organism.centerOfMass.x;
+            const dy = particle.y - organism.centerOfMass.y;
+            const distance = Math.hypot(dx, dy);
+            const angle = Math.atan2(dy, dx);
+
+            const force = 10 * (1 - Math.min(distance, maxDistance) / maxDistance);
+
+            particle.vx = Math.cos(angle) * force * particle.maxSpeed;
+            particle.vy = Math.sin(angle) * force * particle.maxSpeed;
+
+            particle.vx += (Math.random() - 0.5) * 2;
+            particle.vy += (Math.random() - 0.5) * 2;
+
+            particle.centerAttractionStrength = 0;
+        });
     }
 }
 
@@ -243,38 +349,27 @@ window.addEventListener('resize', () => {
     canvas.height = window.innerHeight;
     effect.width = canvas.width;
     effect.height = canvas.height;
-    effect.createParticles(); // Re-create particles for the new size
+    effect.createParticles();
 });
 
-let maxDistance = minMax(2, 20);
+let maxDistance = minMax(2, 80);
 let targetDistance = maxDistance;
+
 function updateMaxDistance() {
     targetDistance = minMax(5, 50);
-
-    setTimeout(updateMaxDistance, 5000);
+    setTimeout(updateMaxDistance, 500);
 }
 
 updateMaxDistance();
 
-
 const effect = new Effect(canvas);
-effect.handleParticles(ctx);
-
-
 
 function animate() {
-
-    // we fill a semitransparent rect each frame to fade out over time. Adjust alpha value to change the speed of the fade.
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'rgba(5, 5, 7, 0.99)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.99)';
     effect.handleParticles(ctx);
-    // lerp from old maxDistance to new distance
     maxDistance += (targetDistance - maxDistance) * 0.01;
     requestAnimationFrame(animate);
 }
 
 animate();
-
-
