@@ -5,18 +5,27 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// ctx.strokeStyle = 'rgba(153, 3, 145, 0.95)';
-ctx.strokeStyle = 'hotpink';
-ctx.lineWidth = 0.015;
 
-const numberOfParticles = minMax(900, 900);
+function getRandomBrightColor() {
+    const hue = Math.floor(Math.random() * 360);
+    const saturation = Math.floor(Math.random() * 30) + 70; // 70-100%
+    const lightness = Math.floor(Math.random() * 30) + 50; // 50-80%
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
+
+ctx.strokeStyle = getRandomBrightColor();
+// ctx.strokeStyle = 'rgba(153, 3, 145, 0.95)';
+// ctx.strokeStyle = 'hotpink';
+ctx.lineWidth = 0.05;
+
+const numberOfParticles = minMax(450, 650);
 
 class Particle {
     constructor(effect) {
         this.effect = effect;
-        this.baseSize = minMax(2, 16);
+        this.baseSize = minMax(4, 20);
         this.size = this.baseSize;
-        this.strokeWidth = minMax(0.4, 0.8);
+        this.strokeWidth = 0.2;
         this.reset();
     }
 
@@ -24,10 +33,12 @@ class Particle {
         const margin = this.size * 2;
         this.x = margin + Math.random() * (this.effect.width - margin * 2);
         this.y = margin + Math.random() * (this.effect.height - margin * 2);
-        this.vx = minMax(-1, 0.5);
-        this.vy = minMax(-1, 0.5);
-        this.maxSpeed = 3;
-        this.centerAttractionStrength = 0.00015;
+        this.vx = 0;
+        this.vy = 0;
+        this.maxSpeed = 0.5;
+        this.centerAttractionStrength = 0.01;
+        this.size = 3.5;
+        // this.sizeIncrease = 0.5;
         this.isAbsorbed = false;
         this.organismId = null;
     }
@@ -35,10 +46,7 @@ class Particle {
     draw(context) {
         context.beginPath();
         context.arc(this.x, this.y, this.size, 0, 2 * Math.PI);
-        context.fillStyle = 'rgba(2, 2, 2, 0.12)';
-        // context.fillStyle = 'rgba(2, 1, 1, 0.25)';
-        // context.fillStyle = 'rgba(2, 1, 1, 0.25)';
-        // context.fillStyle = 'black';
+        context.fillStyle = 'rgba(2, 2, 2, 0.52)';
         context.fill();
     }
 
@@ -57,7 +65,7 @@ class Particle {
         this.x = Math.max(Math.min(this.x, this.effect.width - this.size), this.size);
         this.y = Math.max(Math.min(this.y, this.effect.height - this.size), this.size);
 
-        if (!isPulsing && this.centerAttractionStrength < 0.05) {
+        if (!isPulsing && this.centerAttractionStrength < 0.01) {
             this.centerAttractionStrength += 0.0001;
         }
     }
@@ -71,7 +79,7 @@ class Particle {
         this.vy += (dy / distanceToCenter) * this.centerAttractionStrength;
 
         const margin = this.size * 0.5;
-        const repelStrength = 80;
+        const repelStrength = 120;
 
         if (this.x < margin) {
             this.vx += repelStrength;
@@ -101,12 +109,12 @@ class Particle {
             const dy = this.y - other.y;
             const distance = Math.hypot(dx, dy);
 
-            if (distance < this.size * 4) {
+            if (distance < this.size * (minMax(5.75, 6.8))) {
                 separationForce.x += dx / distance;
                 separationForce.y += dy / distance;
             }
 
-            if (distance < this.size * 40) {
+            if (distance < this.size * 20) {
                 cohesionForce.x += other.x;
                 cohesionForce.y += other.y;
                 alignmentForce.x += other.vx;
@@ -122,8 +130,8 @@ class Particle {
             alignmentForce.y /= neighborCount;
         }
 
-        this.vx += (separationForce.x * 0.6 + cohesionForce.x * 0.4 + alignmentForce.x * 0.4);
-        this.vy += (separationForce.y * 0.6 + cohesionForce.y * 0.4 + alignmentForce.y * 0.4);
+        this.vx += (separationForce.x * 0.45 + cohesionForce.x * 0.15 + alignmentForce.x * 0.7);
+        this.vy += (separationForce.y * 0.45 + cohesionForce.y * 0.15 + alignmentForce.y * 0.7);
     }
 
     handleMouseInteraction() {
@@ -307,7 +315,7 @@ class Effect {
                 if (distance < maxDistance) {
                     const opacity = 1 - (distance / maxDistance);
                     context.save();
-                    const strokeWidth = 2 - (distance / maxDistance);
+                    const strokeWidth = 1 - (distance / maxDistance);
                     context.globalAlpha = opacity;
                     context.beginPath();
                     context.moveTo(this.particles[a].x, this.particles[a].y);
@@ -331,7 +339,7 @@ class Effect {
             const distance = Math.hypot(dx, dy);
             const angle = Math.atan2(dy, dx);
 
-            const force = 10 * (1 - Math.min(distance, maxDistance) / maxDistance);
+            const force = 40 * (1 - Math.min(distance, maxDistance) / maxDistance);
 
             particle.vx = Math.cos(angle) * force * particle.maxSpeed;
             particle.vy = Math.sin(angle) * force * particle.maxSpeed;
@@ -352,11 +360,11 @@ window.addEventListener('resize', () => {
     effect.createParticles();
 });
 
-let maxDistance = minMax(2, 80);
+let maxDistance = minMax(2, 50);
 let targetDistance = maxDistance;
 
 function updateMaxDistance() {
-    targetDistance = minMax(5, 50);
+    targetDistance = minMax(30, 60);
     setTimeout(updateMaxDistance, 500);
 }
 
@@ -366,9 +374,9 @@ const effect = new Effect(canvas);
 
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.99)';
+    // ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
     effect.handleParticles(ctx);
-    maxDistance += (targetDistance - maxDistance) * 0.01;
+    maxDistance += (targetDistance - maxDistance) * 0.004;
     requestAnimationFrame(animate);
 }
 
