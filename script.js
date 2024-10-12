@@ -36,8 +36,8 @@ class Particle {
         this.vx = 0;
         this.vy = 0;
         this.maxSpeed = 0.5;
-        this.centerAttractionStrength = 0.01;
-        this.size = 3.5;
+        this.centerAttractionStrength = 0.02;
+        this.size = 3.15;
         // this.sizeIncrease = 0.5;
         this.isAbsorbed = false;
         this.organismId = null;
@@ -189,7 +189,7 @@ class Effect {
         this.pulseDuration = 2000;
         this.pulseInterval = 500;
         this.lastPulseTime = 0;
-        this.minTimeBetweenPulses = 10000;
+        this.minTimeBetweenPulses = 1000;
         this.isPulsing = false;
         this.organisms = [];
         this.organismRadius = 200;
@@ -225,7 +225,7 @@ class Effect {
         while (unclustered.size > 0) {
             const seed = unclustered.values().next().value;
             const cluster = this.growCluster(seed, unclustered);
-            if (cluster.size > 5) {
+            if (cluster.size > 50) {
                 const organismData = this.calculateOrganismData(cluster);
                 this.organisms.push(organismData);
                 for (const particle of cluster) {
@@ -250,7 +250,6 @@ class Effect {
                 }
             }
         }
-
         return cluster;
     }
 
@@ -284,7 +283,7 @@ class Effect {
     handleParticles(context) {
         this.identifyOrganisms();
 
-        this.organisms.forEach((organism, index) => {
+        this.organisms.forEach((organism) => {
             const currentTime = Date.now();
             const timeSinceLastPulse = currentTime - organism.lastPulseTime;
 
@@ -315,7 +314,7 @@ class Effect {
                 if (distance < maxDistance) {
                     const opacity = 1 - (distance / maxDistance);
                     context.save();
-                    const strokeWidth = 1 - (distance / maxDistance);
+                    const strokeWidth = 0.75 - (distance / maxDistance);
                     context.globalAlpha = opacity;
                     context.beginPath();
                     context.moveTo(this.particles[a].x, this.particles[a].y);
