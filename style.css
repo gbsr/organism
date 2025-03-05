@@ -26,7 +26,7 @@ html {
 	font-size: 15vw;
 	white-space: nowrap;
 	z-index: 1;
-	opacity: 0.01;
+	opacity: 0.05;
 }
 
 .canvas-container {
