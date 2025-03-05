@@ -3,7 +3,7 @@ import { minMax } from './helpers.js';
 export class Particle {
     constructor(effect) {
         this.effect = effect;
-        this.baseSize = minMax(4, 20);
+        this.baseSize = minMax(10, 40);
         this.size = this.baseSize;
         this.strokeWidth = 0.2;
         this.reset();

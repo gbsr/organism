@@ -14,7 +14,7 @@ function getRandomBrightColor() {
 }
 
 ctx.strokeStyle = getRandomBrightColor();
-ctx.lineWidth = 0.1;
+ctx.lineWidth = 1;
 
 const numberOfParticles = minMax(450, 650);
 
@@ -23,7 +23,7 @@ class Particle {
     this.effect = effect;
     this.baseSize = minMax(0.25, 8);
     this.size = this.baseSize;
-    this.strokeWidth = 0.02;
+    this.strokeWidth = 1;
     this.reset();
   }
 
@@ -35,6 +35,7 @@ class Particle {
   }
 
   update() {
+
   
     this.x += this.vx;
     this.y += this.vy;

@@ -111,7 +111,7 @@ export class Effect {
         };
     }
 
-    handleParticles(maxDistance) {
+    handleParticles(maxDistance, context = this.ctx) {
         this.identifyOrganisms();
 
         this.organisms.forEach((organism) => {
@@ -120,7 +120,7 @@ export class Effect {
 
     
             organism.particles.forEach(particle => {
-                particle.draw(this.ctx);
+                particle.draw(context);
                 particle.update();
             });
         });
