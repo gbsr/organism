@@ -11,12 +11,14 @@ ctx.lineWidth = 0.05;
 
 const numberOfParticles = minMax(450, 650);
 
-let maxDistance = minMax(2, 50);
+let maxDistance = minMax(2, 10);
 let targetDistance = maxDistance;
 
 function updateMaxDistance() {
-    targetDistance = minMax(30, 60);
-    setTimeout(updateMaxDistance, 500);
+    targetDistance = minMax(18, 35);
+    // targetDistance = 22;
+     console.log(`targetDistance: ${targetDistance}`);
+    setTimeout(updateMaxDistance, 5000);
 }
 
 updateMaxDistance();
@@ -34,7 +36,7 @@ window.addEventListener('resize', () => {
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     effect.handleParticles(maxDistance);
-    maxDistance += (targetDistance - maxDistance) * 0.004;
+    maxDistance += (targetDistance - maxDistance) * 0.01;
     requestAnimationFrame(animate);
 }
 

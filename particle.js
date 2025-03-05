@@ -10,13 +10,14 @@ export class Particle {
     }
 
     reset() {
-        const margin = this.size * 2;
+        const margin = this.size * 0.2;
         this.x = margin + Math.random() * (this.effect.width - margin * 2);
         this.y = margin + Math.random() * (this.effect.height - margin * 2);
         this.vx = 0;
         this.vy = 0;
         this.maxSpeed = 0.5;
-        this.centerAttractionStrength = 0.02;
+        // Increased center attraction strength for stronger pull to center
+        this.centerAttractionStrength = 0.05;
         this.size = 3.15;
         this.isAbsorbed = false;
         this.organismId = null;
@@ -29,49 +30,40 @@ export class Particle {
         context.fill();
     }
 
-    update(isPulsing, centerOfMass) {
-        if (isPulsing) {
-            this.repulse(centerOfMass);
-        } else {
-            this.applyForces(centerOfMass);
-        }
-
+    update() {
+        // Always apply center attraction
+        this.applyCenterAttraction();
+        
+        // Apply movement
         this.x += this.vx;
         this.y += this.vy;
 
         this.limitSpeed();
 
+        // Keep particles within bounds
         this.x = Math.max(Math.min(this.x, this.effect.width - this.size), this.size);
         this.y = Math.max(Math.min(this.y, this.effect.height - this.size), this.size);
-
-        if (!isPulsing && this.centerAttractionStrength < 0.01) {
-            this.centerAttractionStrength += 0.0001;
-        }
     }
-
-    applyForces(centerOfMass) {
-        const dx = centerOfMass.x - this.x;
-        const dy = centerOfMass.y - this.y;
+    
+    applyCenterAttraction() {
+        // Calculate direction to the center of the canvas
+        const centerX = this.effect.width / 2;
+        const centerY = this.effect.height / 2;
+        
+        const dx = centerX - this.x;
+        const dy = centerY - this.y;
         const distanceToCenter = Math.hypot(dx, dy);
-
-        this.vx += (dx / distanceToCenter) * this.centerAttractionStrength;
-        this.vy += (dy / distanceToCenter) * this.centerAttractionStrength;
-
-        const margin = this.size * 0.5;
-        const repelStrength = 120;
-
-        if (this.x < margin) {
-            this.vx += repelStrength;
-        } else if (this.x > this.effect.width - margin) {
-            this.vx -= repelStrength;
+        
+        if (distanceToCenter > 0) {
+            // Apply force toward center, strength increases with distance
+            this.vx += (dx / distanceToCenter) * this.centerAttractionStrength;
+            this.vy += (dy / distanceToCenter) * this.centerAttractionStrength;
         }
-        if (this.y < margin) {
-            this.vy += repelStrength;
-        } else if (this.y > this.effect.height - margin) {
-            this.vy -= repelStrength;
-        }
-
+        
+        // Apply boids behavior for natural movement
         this.applyBoidsBehavior();
+        
+        // Handle mouse interaction
         this.handleMouseInteraction();
     }
 
@@ -109,8 +101,9 @@ export class Particle {
             alignmentForce.y /= neighborCount;
         }
 
-        this.vx += (separationForce.x * 0.45 + cohesionForce.x * 0.15 + alignmentForce.x * 0.7);
-        this.vy += (separationForce.y * 0.45 + cohesionForce.y * 0.15 + alignmentForce.y * 0.7);
+        // Reduce the influence of boids behavior to prioritize center attraction
+        this.vx += (separationForce.x * 0.3 + cohesionForce.x * 0.1 + alignmentForce.x * 0.4);
+        this.vy += (separationForce.y * 0.3 + cohesionForce.y * 0.1 + alignmentForce.y * 0.4);
     }
 
     handleMouseInteraction() {
@@ -127,21 +120,6 @@ export class Particle {
                 this.vy += Math.sin(angle) * force * 5.2;
             }
         }
-    }
-
-    repulse(centerOfMass) {
-        const repulsionStrength = minMax(1, 2, this.effect.repulsionStrength);
-        const repulsionRadius = minMax(400, 1600, this.effect.repulsionRadius);
-        const dx = this.x - centerOfMass.x;
-        const dy = this.y - centerOfMass.y;
-        const distanceToCenter = Math.hypot(dx, dy);
-        if (distanceToCenter < repulsionRadius) {
-            const angle = Math.atan2(dy, dx);
-            const force = repulsionStrength * (1 - distanceToCenter / repulsionRadius);
-            this.vx += Math.cos(angle) * force;
-            this.vy += Math.sin(angle) * force;
-        }
-        this.centerAttractionStrength = 0;
     }
 
     limitSpeed() {

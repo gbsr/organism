@@ -118,18 +118,11 @@ export class Effect {
             const currentTime = Date.now();
             const timeSinceLastPulse = currentTime - organism.lastPulseTime;
 
-            if (organism.absorbedRatio >= this.absorptionThreshold && timeSinceLastPulse > this.minTimeBetweenPulses) {
-                this.triggerPulse(organism, currentTime);
-            }
-
+    
             organism.particles.forEach(particle => {
                 particle.draw(this.ctx);
-                particle.update(organism.isPulsing, organism.centerOfMass);
+                particle.update();
             });
-
-            if (organism.isPulsing && currentTime - organism.lastPulseTime > this.pulseDuration) {
-                organism.isPulsing = false;
-            }
         });
 
         this.connectParticles(maxDistance);
